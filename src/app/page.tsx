@@ -2,8 +2,8 @@
 
 import { useState } from "react"
 import { WelcomeModal } from "@/components/welcome-modal"
-import { LoginForm } from "@/components/login-form"
-import { ChatInterface } from "@/components/chat-interface"
+import ChatInterface from "@/components/chat"
+import { redirect } from "next/navigation"
 
 export default function Home() {
   const [currentView, setCurrentView] = useState<"welcome" | "login" | "chat">("welcome")
@@ -25,11 +25,11 @@ export default function Home() {
   }
 
   if (currentView === "welcome") {
-    return <WelcomeModal onLogin={handleLogin} onSignup={handleSignup} onStayLoggedOut={handleStayLoggedOut} />
+    return <WelcomeModal />
   }
 
   if (currentView === "login") {
-    return <LoginForm />
+    redirect("/log-in")
   }
 
   return <ChatInterface />
