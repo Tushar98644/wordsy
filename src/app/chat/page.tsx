@@ -1,5 +1,4 @@
 import ChatInterface from '@/components/chat'
-import React from 'react'
 
 function ChatPage() {
   return (

@@ -3,8 +3,8 @@
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Phone, Apple } from "lucide-react"
-import { SignIn, SignInButton } from "@clerk/nextjs"
+import { Phone } from "lucide-react"
+import { SignInButton } from "@clerk/nextjs"
 
 export function LoginForm() {
   const [email, setEmail] = useState("")
