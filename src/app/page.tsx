@@ -29,7 +29,7 @@ export default function Home() {
   }
 
   if (currentView === "login") {
-    return <LoginForm onContinue={handleContinue} />
+    return <LoginForm />
   }
 
   return <ChatInterface />
