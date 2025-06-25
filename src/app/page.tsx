@@ -1,20 +1,11 @@
 "use client"
 
-import { useState } from "react"
 import { WelcomeModal } from "@/components/welcome-modal"
 import ChatInterface from "@/components/chat"
-import { redirect } from "next/navigation"
+import { useUser } from "@clerk/nextjs"
 
 export default function Home() {
-  const [currentView ] = useState<"welcome" | "login" | "chat">("welcome")
-
-  if (currentView === "welcome") {
-    return <WelcomeModal />
-  }
-
-  if (currentView === "login") {
-    redirect("/log-in")
-  }
-
-  return <ChatInterface />
+  return (
+    <ChatInterface />
+  )
 }

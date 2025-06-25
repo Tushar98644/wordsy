@@ -1,6 +1,6 @@
 import ChatInterface from '@/components/chat'
 
-function ChatPage() {
+const ChatPage = () => {
   return (
     <ChatInterface />
   )
