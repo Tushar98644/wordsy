@@ -19,9 +19,9 @@ export default function ChatInterface() {
         setIsWelcomeModalOpen(false)
     }, [])
 
-    const handleSignUp = useCallback(() => {
-        console.log('Sign up clicked')
-    }, [])
+    // const handleSignUp = useCallback(() => {
+    //     console.log('Sign up clicked')
+    // }, [])
 
     if (!isLoaded) {
         return (
