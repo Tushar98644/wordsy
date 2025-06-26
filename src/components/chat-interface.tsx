@@ -1,6 +1,8 @@
+/* eslint-disable @next/next/no-img-element */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 'use client';
-
-import { useState, useRef } from 'react';
+import { useChat } from '@ai-sdk/react';
+import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -28,10 +30,57 @@ export default function ChatInterface() {
   const [selectedChat, setSelectedChat] = useState<string | null>(null);
   const [file, setFile] = useState<File | null>(null);
   const [isEditing, setIsEditing] = useState<{ id: string; content: string } | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [messages, setMessages] = useState<any[]>([]);
-  const [inputValue, setInputValue] = useState('');
+  const [fileUrl, setFileUrl] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const userId = "user_123";
+
+  const {
+    messages,
+    input,
+    setInput,
+    handleInputChange,
+    handleSubmit,
+    isLoading,
+    setMessages,
+  } = useChat({
+    api: '/api/v1/chat',
+    onFinish: async (message) => {
+      const fullConversation = [
+        ...messages,
+        { role: 'user', content: input + (fileUrl ? ` [File: ${fileUrl}]` : '') },
+        { role: 'assistant', content: message.content }
+      ];
+
+      const filteredConversation = fullConversation
+        .filter(msg => msg.role === 'user' || msg.role === 'assistant')
+        .map(msg => ({
+          role: msg.role as 'user' | 'assistant',
+          content: msg.content
+        }));
+
+      try {
+        const filteredConversation = fullConversation
+          .filter(msg => msg.role === 'user' || msg.role === 'assistant')
+          .map(msg => ({
+            role: msg.role as 'user' | 'assistant',
+            content: msg.content
+          }));
+        // const memoryId = await storeConversation(userId, filteredConversation);
+        // console.log('Conversation stored with ID:', memoryId);
+      } catch (error) {
+        console.error('Error storing conversation:', error);
+      }
+
+      // Reset file state after message is complete
+      setFile(null);
+      setFileUrl(null);
+    },
+    body: {
+      fileUrl: fileUrl || undefined,
+      userId
+    }
+  });
 
   const chatHistory = [
     "React infinite re-render fix",
@@ -47,104 +96,110 @@ export default function ChatInterface() {
   const handleNewChat = () => {
     setMessages([]);
     setSelectedChat(null);
-    setInputValue('');
+    setInput('');
     setFile(null);
+    setFileUrl(null);
   };
 
-  const handleChatSelect = (chat: string) => {
+  const handleChatSelect = async (chat: string) => {
     setSelectedChat(chat);
     setMessages([]);
-    setInputValue('');
+    setInput('');
     setFile(null);
+    setFileUrl(null);
+
+    try {
+      // const memories = await recallConversation(userId, chat);
+      // if (memories.length > 0) {
+      //   // Parse the conversation from mem0
+      //   let parsedContent: any[] = [];
+      //   try {
+      //     parsedContent = JSON.parse(memories[0]);
+      //   } catch (e) {
+      //     console.error('Failed to parse conversation memory:', e);
+      //   }
+      //   const parsedMessages = parsedContent.map((msg: any) => ({
+      //     id: Date.now().toString(), // Generate new IDs
+      //     role: msg.role,
+      //     content: msg.content
+      //   }));
+
+      //   setMessages(parsedMessages);
+      // }
+    } catch (error) {
+      console.error('Error recalling conversation:', error);
+    }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
+    if (e.key === 'Enter' && !e.shiftKey && !isLoading) {
       e.preventDefault();
-      handleSendMessage();
+      handleSubmit(e as unknown as React.FormEvent<HTMLFormElement>);
     }
   };
 
-  const handleSendMessage = async () => {
-    if (!inputValue.trim() && !file) return;
-    
-    const userMessage = {
-      id: Date.now().toString(),
-      role: 'user',
-      content: inputValue,
-      file: file ? URL.createObjectURL(file) : null
-    };
-    
-    setMessages(prev => [...prev, userMessage]);
-    
-    // Add loading indicator
-    const loadingMessage = {
-      id: 'loading',
-      role: 'assistant',
-      content: '',
-      isLoading: true
-    };
-    setMessages(prev => [...prev, loadingMessage]);
-    
-    setInputValue('');
-    setFile(null);
-    if (fileInputRef.current) fileInputRef.current.value = '';
-    
-    try {
-      setIsLoading(true);
-      
-      // In a real app, this would be an API call to your backend
-      // Simulating API response delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Remove loading and add response
-      setMessages(prev => 
-        prev.filter(msg => msg.id !== 'loading')
-          .concat({
-            id: Date.now().toString(),
-            role: 'assistant',
-            content: `I received your message: "${inputValue}"${file ? ` and a ${file.type.split('/')[0]} file` : ''}`
-          })
-      );
-    } catch (error) {
-      console.error('Error sending message:', error);
-      setMessages(prev => prev.filter(msg => msg.id !== 'loading'));
-    } finally {
-      setIsLoading(false);
-    }
+  const handleEditMessage = (id: string, content: string) => {
+    setIsEditing({ id, content });
+    setInput(content);
   };
 
-  const handleEditMessage = (message: any) => {
-    setIsEditing({ id: message.id, content: message.content });
-    setInputValue(message.content);
-  };
-
-  const handleSaveEdit = () => {
+  const handleSaveEdit = async (e: React.FormEvent) => {
+    e.preventDefault();
     if (!isEditing) return;
-    
-    setMessages(prev => 
-      prev.map(m => 
-        m.id === isEditing.id ? { ...m, content: inputValue } : m
-      )
-    );
+
+    setMessages(messages.map(m =>
+      m.id === isEditing.id ? { ...m, content: input } : m
+    ));
+
     setIsEditing(null);
-    setInputValue('');
+    setInput('');
+    setFile(null);
+    setFileUrl(null);
   };
 
   const handleDeleteMessage = (id: string) => {
-    setMessages(prev => prev.filter(message => message.id !== id));
+    setMessages(messages.filter(msg => msg.id !== id));
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setFile(e.target.files[0]);
+
+  async function uploadFileToAPI(file: File) {
+    const form = new FormData();
+    form.append("file", file);
+    const res = await fetch("/api/v1/upload", { method: "POST", body: form });
+    const json = await res.json();
+    return json.imgUrl as string | undefined;
+  }
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files?.[0]) return;
+
+    const selectedFile = e.target.files[0];
+    setFile(selectedFile);
+    setIsUploading(true);
+
+    try {
+      // Upload to Cloudinary
+      const url = await uploadFileToAPI(selectedFile);
+      setFileUrl(url ?? null);
+      console.log('File uploaded to:', url);
+    } catch (error) {
+      console.error('Upload failed:', error);
+    } finally {
+      setIsUploading(false);
     }
   };
 
   const removeFile = () => {
     setFile(null);
+    setFileUrl(null);
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
+
+  // Auto-scroll to bottom of messages
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
 
   return (
     <div className="flex h-screen bg-[#212121] text-white">
@@ -211,9 +266,8 @@ export default function ChatInterface() {
               <button
                 key={index}
                 onClick={() => handleChatSelect(chat)}
-                className={`w-full text-left text-sm text-gray-300 hover:bg-[#2f2f2f] rounded-lg p-3 truncate transition-colors ${
-                  selectedChat === chat ? "bg-[#2f2f2f]" : ""
-                }`}
+                className={`w-full text-left text-sm text-gray-300 hover:bg-[#2f2f2f] rounded-lg p-3 truncate transition-colors ${selectedChat === chat ? "bg-[#2f2f2f]" : ""
+                  }`}
               >
                 {chat}
               </button>
@@ -311,8 +365,8 @@ export default function ChatInterface() {
                 <div className="relative">
                   <div className="relative bg-[#2f2f2f] rounded-[32px] border border-[#404040] mb-4">
                     <Input
-                      value={inputValue}
-                      onChange={(e) => setInputValue(e.target.value)}
+                      value={input}
+                      onChange={handleInputChange}
                       onKeyDown={handleKeyPress}
                       placeholder="Ask anything"
                       className="w-full bg-transparent border-0 text-white placeholder-gray-500 text-[18px] px-8 py-6 focus:ring-0 focus:outline-none rounded-[32px] min-h-[80px] resize-none"
@@ -320,8 +374,8 @@ export default function ChatInterface() {
 
                     {/* Bottom input controls */}
                     <div className="absolute left-6 bottom-4 flex items-center gap-4">
-                      <Button 
-                        variant="ghost" 
+                      <Button
+                        variant="ghost"
                         className="text-gray-400 hover:text-white hover:bg-[#404040] p-1 rounded-lg"
                         onClick={() => fileInputRef.current?.click()}
                       >
@@ -356,10 +410,12 @@ export default function ChatInterface() {
                   </div>
 
                   {/* Send button (appears when typing) */}
-                  {(inputValue.trim() || file) && (
+                  {(input.trim() || file) && (
                     <Button
-                      onClick={handleSendMessage}
-                      className="absolute right-6 bottom-8 bg-white text-black hover:bg-gray-100 rounded-full w-8 h-8 p-0 flex items-center justify-center"
+                      onClick={(e) => handleSubmit(e as any)}
+                      disabled={isUploading || isLoading}
+                      className={`absolute right-6 bottom-8 ${isUploading || isLoading ? 'bg-gray-500' : 'bg-white hover:bg-gray-100'
+                        } text-black rounded-full w-8 h-8 p-0 flex items-center justify-center`}
                     >
                       <span className="text-lg">→</span>
                     </Button>
@@ -373,60 +429,54 @@ export default function ChatInterface() {
               <div className="flex-1 overflow-y-auto p-6">
                 <div className="space-y-6 max-w-4xl mx-auto">
                   {messages.map((message) => (
-                    <div 
-                      key={message.id} 
+                    <div
+                      key={message.id}
                       className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
                     >
-                      <div className={`max-w-3xl px-4 py-3 rounded-2xl ${
-                        message.role === 'user' 
-                          ? 'bg-[#4f46e5] text-white rounded-br-none' 
+                      <div className={`max-w-3xl px-6 py-4 rounded-2xl ${message.role === 'user'
+                          ? 'bg-[#4f46e5] text-white rounded-br-none'
                           : 'bg-[#2f2f2f] text-gray-200 rounded-bl-none'
-                      }`}>
-                        {message.isLoading ? (
-                          <div className="flex space-x-1">
-                            <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                            <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-75"></div>
-                            <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-150"></div>
-                          </div>
-                        ) : (
-                          <>
-                            {message.file && (
-                              <div className="mb-2">
-                                {message.file.type.startsWith('image') ? (
-                                  <img 
-                                    src={message.file} 
-                                    alt="Uploaded" 
-                                    className="max-w-xs rounded-lg"
-                                  />
-                                ) : (
-                                  <div className="flex items-center gap-2 p-2 bg-[#3f3f3f] rounded">
-                                    <div className="bg-gray-500 w-8 h-8 rounded flex items-center justify-center">
-                                      <span className="text-xs">DOC</span>
-                                    </div>
-                                    <span className="text-sm truncate max-w-xs">
-                                      {file?.name || 'Uploaded file'}
-                                    </span>
-                                  </div>
-                                )}
+                        }`}>
+                        {/* File preview */}
+                        {message.content.includes('[File:') && message.role === 'user' && (
+                          <div className="mb-3">
+                            {message.content.includes('image') ? (
+                              <img
+                                src={message.content.match(/\[File: (.*?)\]/)?.[1]}
+                                alt="Uploaded content"
+                                className="max-w-xs max-h-48 rounded-lg"
+                              />
+                            ) : (
+                              <div className="flex items-center gap-2 p-2 bg-[#3f3f3f] rounded">
+                                <div className="bg-gray-500 w-8 h-8 rounded flex items-center justify-center">
+                                  <span className="text-xs">DOC</span>
+                                </div>
+                                <span className="text-sm truncate max-w-xs">
+                                  {message.content.match(/\[File: (.*?)\]/)?.[1]?.split('/').pop() || 'Document'}
+                                </span>
                               </div>
                             )}
-                            {message.content}
-                          </>
+                          </div>
                         )}
-                        
+
+                        {/* Message content */}
+                        {message.content.replace(/\[File: .*?\]/, '')}
+
                         {/* Message actions */}
-                        {message.role === 'user' && !message.isLoading && (
-                          <div className="flex justify-end mt-2">
-                            <Button 
+                        {message.role === 'user' && (
+                          <div className="flex justify-end mt-3 space-x-2">
+                            <Button
+                              size="icon"
                               variant="ghost"
-                              className="text-gray-300 hover:text-white hover:bg-[#404040] p-1 rounded-lg"
-                              onClick={() => handleEditMessage(message)}
+                              className="text-gray-300 hover:text-white hover:bg-[#404040]"
+                              onClick={() => handleEditMessage(message.id, message.content.replace(/\[File: .*?\]/, ''))}
                             >
                               <Edit className="w-4 h-4" />
                             </Button>
-                            <Button 
+                            <Button
+                              size="icon"
                               variant="ghost"
-                              className="text-gray-300 hover:text-white hover:bg-[#404040] p-1 rounded-lg"
+                              className="text-gray-300 hover:text-white hover:bg-[#404040]"
                               onClick={() => handleDeleteMessage(message.id)}
                             >
                               <Trash className="w-4 h-4" />
@@ -436,6 +486,20 @@ export default function ChatInterface() {
                       </div>
                     </div>
                   ))}
+
+                  {isLoading && (
+                    <div className="flex justify-start">
+                      <div className="max-w-3xl px-6 py-4 rounded-2xl bg-[#2f2f2f] text-gray-200 rounded-bl-none">
+                        <div className="flex space-x-1">
+                          <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                          <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-75"></div>
+                          <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-150"></div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  <div ref={messagesEndRef} />
                 </div>
               </div>
 
@@ -445,107 +509,135 @@ export default function ChatInterface() {
                   <div className="mb-4 p-3 bg-[#2f2f2f] rounded-lg flex justify-between items-center">
                     <span className="text-gray-400">Editing message</span>
                     <div className="flex space-x-2">
-                      <Button 
+                      <Button
                         variant="outline"
                         className="text-gray-300 hover:bg-[#404040]"
                         onClick={() => setIsEditing(null)}
                       >
                         Cancel
                       </Button>
-                      <Button 
+                      <Button
                         className="bg-[#4f46e5] hover:bg-[#4338ca]"
                         onClick={handleSaveEdit}
                       >
-                        Save & Resend
+                        Save Changes
                       </Button>
                     </div>
                   </div>
                 )}
-                
-                {file && (
+
+                {(file || fileUrl) && (
                   <div className="mb-2 flex items-center justify-between p-2 bg-[#2f2f2f] rounded-lg">
                     <div className="flex items-center gap-2">
                       <div className="bg-gray-500 w-8 h-8 rounded flex items-center justify-center">
                         <span className="text-xs">
-                          {file.type.startsWith('image') ? 'IMG' : 'DOC'}
+                          {file?.type.startsWith('image') ? 'IMG' : 'DOC'}
                         </span>
                       </div>
-                      <span className="text-sm text-gray-400 truncate max-w-xs">{file.name}</span>
+                      <span className="text-sm text-gray-400 truncate max-w-xs">
+                        {file?.name || 'Uploaded file'}
+                      </span>
+                      {isUploading && (
+                        <div className="ml-2 flex space-x-1">
+                          <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce"></div>
+                          <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce delay-75"></div>
+                          <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce delay-150"></div>
+                        </div>
+                      )}
                     </div>
-                    <Button 
+                    <Button
                       variant="ghost"
-                      className="text-gray-400 hover:text-white p-1"
+                      size="icon"
+                      className="text-gray-400 hover:text-white"
                       onClick={removeFile}
+                      disabled={isUploading}
                     >
                       <X className="w-4 h-4" />
                     </Button>
                   </div>
                 )}
-                
-                <div className="relative">
-                  <div className="relative bg-[#2f2f2f] rounded-[32px] border border-[#404040]">
-                    <Input
-                      value={inputValue}
-                      onChange={(e) => setInputValue(e.target.value)}
-                      onKeyDown={handleKeyPress}
-                      placeholder="Ask anything"
-                      className="w-full bg-transparent border-0 text-white placeholder-gray-500 text-[18px] px-8 py-6 focus:ring-0 focus:outline-none rounded-[32px] min-h-[80px] resize-none"
-                    />
-                    
-                    <div className="absolute left-6 bottom-4 flex items-center gap-4">
-                      <Button 
-                        variant="ghost" 
-                        className="text-gray-400 hover:text-white hover:bg-[#404040] p-1 rounded-lg"
-                        onClick={() => fileInputRef.current?.click()}
-                      >
-                        <Plus className="w-5 h-5" />
-                        <input
-                          type="file"
-                          ref={fileInputRef}
-                          className="hidden"
-                          onChange={handleFileChange}
-                          accept="image/*,application/pdf,text/plain,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-                        />
-                      </Button>
-                      
-                      <Button
-                        variant="ghost"
-                        className="text-gray-400 hover:text-white hover:bg-[#404040] p-1 rounded-lg flex items-center gap-2"
-                      >
-                        <Shuffle className="w-4 h-4" />
-                        <span className="text-sm">Tools</span>
-                      </Button>
-                    </div>
-                    
-                    <div className="absolute right-6 bottom-4 flex items-center gap-2">
-                      <Button variant="ghost" className="text-gray-400 hover:text-white hover:bg-[#404040] p-1 rounded-lg">
-                        <Mic className="w-5 h-5" />
-                      </Button>
-                      
-                      <Button variant="ghost" className="text-gray-400 hover:text-white hover:bg-[#404040] p-1 rounded-lg">
-                        <AudioLines className="w-5 h-5" />
-                      </Button>
-                    </div>
-                  </div>
-                  
-                  <Button
-                    onClick={handleSendMessage}
-                    disabled={isLoading}
-                    className={`absolute right-6 bottom-8 ${
-                      isLoading ? 'bg-gray-500' : 'bg-white hover:bg-gray-100'
-                    } text-black rounded-full w-8 h-8 p-0 flex items-center justify-center`}
-                  >
-                    {isLoading ? (
-                      <div className="flex space-x-1">
-                        <div className="w-1 h-1 bg-black rounded-full animate-bounce"></div>
-                        <div className="w-1 h-1 bg-black rounded-full animate-bounce delay-75"></div>
-                        <div className="w-1 h-1 bg-black rounded-full animate-bounce delay-150"></div>
+
+                <form onSubmit={handleSubmit}>
+                  <div className="relative">
+                    <div className="relative bg-[#2f2f2f] rounded-[32px] border border-[#404040]">
+                      <Input
+                        value={input}
+                        onChange={handleInputChange}
+                        onKeyDown={handleKeyPress}
+                        placeholder="Ask anything"
+                        className="w-full bg-transparent border-0 text-white placeholder-gray-500 text-[18px] px-8 py-6 focus:ring-0 focus:outline-none rounded-[32px] min-h-[80px] resize-none"
+                        disabled={isUploading}
+                      />
+
+                      <div className="absolute left-6 bottom-4 flex items-center gap-4">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="text-gray-400 hover:text-white hover:bg-[#404040]"
+                          type="button"
+                          onClick={() => fileInputRef.current?.click()}
+                          disabled={isUploading}
+                        >
+                          <Plus className="w-5 h-5" />
+                          <input
+                            type="file"
+                            ref={fileInputRef}
+                            className="hidden"
+                            onChange={handleFileChange}
+                            accept="image/*,application/pdf,text/plain,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                            disabled={isUploading}
+                          />
+                        </Button>
+
+                        <Button
+                          variant="ghost"
+                          className="text-gray-400 hover:text-white hover:bg-[#404040] flex items-center gap-2"
+                          disabled={isUploading}
+                        >
+                          <Shuffle className="w-4 h-4" />
+                          <span className="text-sm">Tools</span>
+                        </Button>
                       </div>
-                    ) : (
-                      <span className="text-lg">→</span>
-                    )}
-                  </Button>
-                </div>
+
+                      <div className="absolute right-6 bottom-4 flex items-center gap-2">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="text-gray-400 hover:text-white hover:bg-[#404040]"
+                          disabled={isUploading}
+                        >
+                          <Mic className="w-5 h-5" />
+                        </Button>
+
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="text-gray-400 hover:text-white hover:bg-[#404040]"
+                          disabled={isUploading}
+                        >
+                          <AudioLines className="w-5 h-5" />
+                        </Button>
+                      </div>
+                    </div>
+
+                    <Button
+                      type="submit"
+                      disabled={isUploading || isLoading || (!input.trim() && !file)}
+                      className={`absolute right-6 bottom-8 ${isUploading || isLoading ? 'bg-gray-500' : 'bg-white hover:bg-gray-100'
+                        } text-black rounded-full w-8 h-8 p-0 flex items-center justify-center`}
+                    >
+                      {isUploading || isLoading ? (
+                        <div className="flex space-x-1">
+                          <div className="w-1.5 h-1.5 bg-black rounded-full animate-bounce"></div>
+                          <div className="w-1.5 h-1.5 bg-black rounded-full animate-bounce delay-75"></div>
+                          <div className="w-1.5 h-1.5 bg-black rounded-full animate-bounce delay-150"></div>
+                        </div>
+                      ) : (
+                        <span className="text-lg">→</span>
+                      )}
+                    </Button>
+                  </div>
+                </form>
               </div>
             </>
           )}
