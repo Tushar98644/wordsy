@@ -49,13 +49,10 @@ export default function ChatInterface() {
             role: msg.role as 'user' | 'assistant',
             content: msg.content
           }));
-        // const memoryId = await storeConversation(userId, filteredConversation);
-        // console.log('Conversation stored with ID:', memoryId);
       } catch (error) {
         console.error('Error storing conversation:', error);
       }
 
-      // Reset file state after message is complete
       setFile(null);
       setFileUrl(null);
     },
@@ -128,7 +125,6 @@ export default function ChatInterface() {
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
-  // Auto-scroll to bottom of messages
   const messagesEndRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -137,7 +133,7 @@ export default function ChatInterface() {
   return (
     <div className="flex h-screen bg-[#212121] text-white">
       {/* Sidebar */}
-      <Sidebar setInput={setInput} setMessages={setMessages} setFile={setFile} setFileUrl={setFileUrl}/>
+      <Sidebar setInput={setInput} setMessages={setMessages} setFile={setFile} setFileUrl={setFileUrl} />
 
       {/* Main content */}
       <div className="flex-1 flex flex-col">
@@ -145,7 +141,7 @@ export default function ChatInterface() {
         <ChatHeader />
 
         {/* Chat area */}
-        <div className="flex-1 flex flex-col">
+        <div className="flex-1 flex flex-col overflow-scroll">
           {messages.length === 0 ? (
             <div className="flex-1 flex flex-col items-center justify-center p-8">
               <h1 className="text-[40px] font-normal text-center mb-12 text-white leading-tight">
@@ -153,7 +149,6 @@ export default function ChatInterface() {
               </h1>
 
               <div className="w-full max-w-4xl">
-                {/* Top controls */}
                 <TopControls/> 
 
                 <ChatInput 
@@ -171,7 +166,6 @@ export default function ChatInterface() {
             </div>
           ) : (
             <>
-              {/* Messages container */}
              <MessageContainer 
                 messages={messages}
                 isLoading={isLoading}
@@ -180,7 +174,6 @@ export default function ChatInterface() {
                 messagesEndRef={messagesEndRef}
               />
 
-              {/* Input area */}
               <EditInput
                 input={input}
                 handleInputChange={handleInputChange}
