@@ -5,15 +5,14 @@ import { useChat } from '@ai-sdk/react';
 import { useState, useRef, useEffect } from 'react';
 import Sidebar from './sidebar';
 import ChatHeader from './chat-area/header';
-import TopControls from './chat-area/top-controls';
 import ChatInput from './chat-area/chat-input';
 import MessageContainer from './chat-area/message-container';
-import EditInput from './chat-area/edit-input';
 
 export default function ChatInterface() {
   const [file, setFile] = useState<File | null>(null);
   const [isEditing, setIsEditing] = useState<{ id: string; content: string } | null>(null);
   const [fileUrl, setFileUrl] = useState<string | null>(null);
+  const [fileType, setFileType] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const userId = "user_123";
@@ -24,7 +23,6 @@ export default function ChatInterface() {
     setInput,
     handleInputChange,
     handleSubmit,
-    isLoading,
     setMessages,
   } = useChat({
     api: '/api/v1/chat',
@@ -58,12 +56,13 @@ export default function ChatInterface() {
     },
     body: {
       fileUrl: fileUrl || undefined,
+      fileType: fileType || undefined,
       userId
     }
   });
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey && !isLoading) {
+    if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSubmit(e as unknown as React.FormEvent<HTMLFormElement>);
     }
@@ -96,22 +95,27 @@ export default function ChatInterface() {
   async function uploadFileToAPI(file: File) {
     const form = new FormData();
     form.append("file", file);
-    const res = await fetch("/api/v1/upload", { method: "POST", body: form });
+
+    const res = await fetch("/api/v1/upload", {
+      method: "POST",
+      body: form,
+    });
+
     const json = await res.json();
-    return json.imgUrl as string | undefined;
+    return { url: json.imgUrl, type: json.fileType };
   }
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files?.[0]) return;
-
     const selectedFile = e.target.files[0];
+
     setFile(selectedFile);
     setIsUploading(true);
 
     try {
-      const url = await uploadFileToAPI(selectedFile);
+      const { url, type } = await uploadFileToAPI(selectedFile);
       setFileUrl(url ?? null);
-      console.log('File uploaded to:', url);
+      setFileType(type ?? null);
     } catch (error) {
       console.error('Upload failed:', error);
     } finally {
@@ -141,15 +145,12 @@ export default function ChatInterface() {
         {/* Chat area */}
         <div className="flex-1 flex flex-col overflow-scroll">
           {messages.length === 0 ? (
-            <div className="flex-1 flex flex-col items-center justify-center p-8">
+            <div className="flex flex-1 flex-col items-center justify-center px-4">
               <h1 className="text-[40px] font-normal text-center mb-12 text-white leading-tight">
                 Where should we begin?
               </h1>
-
               <div className="w-full max-w-4xl">
-                <TopControls/> 
-
-                <ChatInput 
+                <ChatInput
                   input={input}
                   handleInputChange={handleInputChange}
                   handleKeyPress={handleKeyPress}
@@ -157,38 +158,37 @@ export default function ChatInterface() {
                   fileInputRef={fileInputRef}
                   handleFileChange={handleFileChange}
                   file={file}
+                  fileUrl={fileUrl}
                   isUploading={isUploading}
-                  isLoading={isLoading}
+                  isEditing={isEditing}
+                  setIsEditing={setIsEditing}
+                  handleSaveEdit={handleSaveEdit}
+                  removeFile={removeFile}
                 />
               </div>
             </div>
           ) : (
             <>
-             <MessageContainer 
+              <MessageContainer
                 messages={messages}
-                isLoading={isLoading}
                 handleEditMessage={handleEditMessage}
                 handleDeleteMessage={handleDeleteMessage}
-                messagesEndRef={messagesEndRef}
-              />
-
-              <EditInput
-                input={input}
-                handleInputChange={handleInputChange}
-                handleKeyPress={handleKeyPress}
-                handleSubmit={handleSubmit}
-                fileInputRef={fileInputRef}
-                handleFileChange={handleFileChange}
-                file={file}
-                fileUrl={fileUrl}
-                isUploading={isUploading}
-                isLoading={isLoading}
-                isEditing={isEditing}
-                setIsEditing={setIsEditing}
-                handleSaveEdit={handleSaveEdit}
-                removeFile={removeFile}
-              />
-            </>
+                messagesEndRef={messagesEndRef} /><div className="w-full max-w-4xl mx-auto justify-self-end items-end">
+                <ChatInput
+                  input={input}
+                  handleInputChange={handleInputChange}
+                  handleKeyPress={handleKeyPress}
+                  handleSubmit={handleSubmit}
+                  fileInputRef={fileInputRef}
+                  handleFileChange={handleFileChange}
+                  file={file}
+                  fileUrl={fileUrl}
+                  isUploading={isUploading}
+                  isEditing={isEditing}
+                  setIsEditing={setIsEditing}
+                  handleSaveEdit={handleSaveEdit}
+                  removeFile={removeFile} />
+              </div></>
           )}
         </div>
       </div>

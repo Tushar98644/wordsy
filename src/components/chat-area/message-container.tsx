@@ -9,7 +9,6 @@ interface ContainerProps {
     role: 'user' | 'assistant' | 'system' | 'data';
     content: string;
   }>;
-  isLoading: boolean;
   handleEditMessage: (id: string, content: string) => void;
   handleDeleteMessage: (id: string) => void;
   messagesEndRef: React.RefObject<HTMLDivElement | null>;
@@ -17,7 +16,6 @@ interface ContainerProps {
 
 const MessageContainer = ({
   messages,
-  isLoading,
   handleEditMessage,
   handleDeleteMessage,
   messagesEndRef,
@@ -91,20 +89,7 @@ const MessageContainer = ({
             </div>
           );
         })}
-
-        {/* Loading animation */}
-        {isLoading && (
-          <div className="flex justify-start">
-            <div className="bg-[#2f2f2f] px-4 py-3 rounded-[30px] rounded-bl-md text-gray-200 text-sm shadow-md">
-              <div className="flex space-x-1">
-                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" />
-                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-100" />
-                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-200" />
-              </div>
-            </div>
-          </div>
-        )}
-
+        
         <div ref={messagesEndRef} />
       </div>
     </div>
