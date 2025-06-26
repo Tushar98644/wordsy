@@ -1,133 +1,59 @@
 import { gemini } from "@/config/gemini";
 import { convertToCoreMessages, streamText } from "ai";
-// import { createStreamableValue } from "ai/rsc";
 
 export async function POST(req: Request) {
   try {
     const { messages, fileUrl } = await req.json();
+    const enhanced = [...messages];
 
-    // Add file context to last message
     if (fileUrl && messages.length > 0) {
-      const lastUserMessage = messages[messages.length - 1];
-      if (lastUserMessage.role === "user") {
-        messages[messages.length - 1] = {
-          ...lastUserMessage,
-          content: `[File: ${fileUrl}] ${lastUserMessage.content}`,
-        };
+      const last = messages[messages.length - 1];
+      if (last.role === "user") {
+        const isImage = /\.(jpg|jpeg|png|gif|webp|bmp)$/i.test(fileUrl);
+        if (isImage) {
+          enhanced[enhanced.length - 1] = {
+            role: "user",
+            content: [
+              { type: "text", text: last.content || "" },
+              { type: "image", image: fileUrl }
+            ]
+          };
+        } else {
+          enhanced[enhanced.length - 1] = {
+            role: "user",
+            content: [
+              { type: "text", text: last.content || "" },
+              { type: "file", data: fileUrl, mimeType: "application/pdf" }
+            ]
+          };
+        }
       }
     }
 
-    // Context handling
-    const maxContextLength = 128000;
-    let tokenCount = 0;
-    const filteredMessages = [];
-
-    for (let i = messages.length - 1; i >= 0; i--) {
-      const message = messages[i];
-      const tokens = message.content.length / 4;
-      if (tokenCount + tokens > maxContextLength) break;
-      tokenCount += tokens;
-      filteredMessages.unshift(message);
+    const maxContextLength = 100000;
+    let count = 0;
+    const filtered: typeof enhanced = [];
+    for (let i = enhanced.length - 1; i >= 0; i--) {
+      const msg = enhanced[i];
+      const length = typeof msg.content === "string"
+        ? msg.content.length
+        : JSON.stringify(msg.content).length;
+      const tokens = length / 4;
+      if (count + tokens > maxContextLength) break;
+      count += tokens;
+      filtered.unshift(msg);
     }
 
-    const coreMessages = convertToCoreMessages(filteredMessages); // Use filtered messages
-
-    // Option 1: Using streamText with proper streaming response
+    const core = convertToCoreMessages(filtered);
     const result = streamText({
-      model: gemini("gemini-1.5-flash"),
-      messages: coreMessages,
+      model: gemini("gemini-2.5-flash"),
+      messages: core,
+      maxTokens: 4000,
     });
 
     return result.toDataStreamResponse();
-
-  } catch (error) {
-    console.error("Error in chat API:", error);
-    
-    // Always return a Response object
-    return new Response(
-      JSON.stringify({ 
-        error: "Failed to generate response",
-        details: error instanceof Error ? error.message : "Unknown error"
-      }), 
-      { 
-        status: 500,
-        headers: { "Content-Type": "application/json" }
-      }
-    );
+  } catch (e) {
+    console.error("Chat API error:", e);
+    return new Response(JSON.stringify({ error: (e as Error).message }), { status: 500 });
   }
 }
-
-// export async function POST_ALTERNATIVE(req: Request) {
-//   try {
-//     const { messages, fileUrl } = await req.json();
-
-//     // Add file context to last message
-//     if (fileUrl && messages.length > 0) {
-//       const lastUserMessage = messages[messages.length - 1];
-//       if (lastUserMessage.role === "user") {
-//         messages[messages.length - 1] = {
-//           ...lastUserMessage,
-//           content: `[File: ${fileUrl}] ${lastUserMessage.content}`,
-//         };
-//       }
-//     }
-
-//     // Context handling
-//     const maxContextLength = 128000;
-//     let tokenCount = 0;
-//     const filteredMessages = [];
-
-//     for (let i = messages.length - 1; i >= 0; i--) {
-//       const message = messages[i];
-//       const tokens = message.content.length / 4;
-//       if (tokenCount + tokens > maxContextLength) break;
-//       tokenCount += tokens;
-//       filteredMessages.unshift(message);
-//     }
-
-//     const coreMessages = convertToCoreMessages(filteredMessages);
-//     const stream = createStreamableValue();
-    
-//     // Start streaming in background
-//     (async () => {
-//       try {
-//         const { textStream } = await streamText({
-//           model: gemini("gemini-1.5-flash"),
-//           messages: coreMessages,
-//         });
-        
-//         for await (const chunk of textStream) {
-//           stream.update(chunk);
-//         }
-
-//         stream.done();
-//       } catch (error) {
-//         console.error("Error in streaming response:", error);
-//         stream.update({ error: "Failed to generate response" });
-//         stream.done();
-//       }
-//     })();
-
-//     // Return the streamable value as a Response
-//     return new Response(
-//       JSON.stringify({ stream: stream.value }), 
-//       {
-//         headers: { "Content-Type": "application/json" }
-//       }
-//     );
-
-//   } catch (error) {
-//     console.error("Error in chat API:", error);
-    
-//     return new Response(
-//       JSON.stringify({ 
-//         error: "Failed to generate response",
-//         details: error instanceof Error ? error.message : "Unknown error"
-//       }), 
-//       { 
-//         status: 500,
-//         headers: { "Content-Type": "application/json" }
-//       }
-//     );
-//   }
-// }
