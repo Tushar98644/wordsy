@@ -132,12 +132,10 @@ export default function ChatInterface() {
 
   return (
     <div className="flex h-screen bg-[#212121] text-white">
-      {/* Sidebar */}
       <Sidebar setInput={setInput} setMessages={setMessages} setFile={setFile} setFileUrl={setFileUrl} />
 
       {/* Main content */}
       <div className="flex-1 flex flex-col">
-        {/* Header */}
         <ChatHeader />
 
         {/* Chat area */}

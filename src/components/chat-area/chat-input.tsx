@@ -28,7 +28,7 @@ const ChatInput = (
     }: ChatInputProps
 ) => {
     return (
-            <div className="relative">
+            <div className="relative ">
                 <div className="relative bg-[#2f2f2f] rounded-[32px] border border-[#404040] mb-4">
                     <Input
                         value={input}
