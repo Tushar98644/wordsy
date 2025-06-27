@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useRef, useEffect } from "react";
 import Sidebar from "./sidebar";
 import ChatHeader from "./chat-area/header";
 import ChatInput from "./chat-area/chat-input";
@@ -8,10 +8,10 @@ import MessageContainer from "./chat-area/message-container";
 import { useUser } from "@clerk/nextjs";
 import { useFileUpload } from "@/hooks/useFileUpload";
 import { useChatManager } from "@/hooks/useChatManager";
+import { useMessageActions } from "@/hooks/useMessageActions";
 
 const ChatInterface = () => {
   const { user } = useUser();
-  const [isEditing, setIsEditing] = useState<{ id: string; content: string } | null>(null);
   const { file, fileUrl, fileType, fileInputRef, isUploading, handleFileChange, removeFile } = useFileUpload();
 
   const { chatId, setChatId, messages, input, setInput, handleInputChange, handleSubmit, setMessages, resetChat } = useChatManager({
@@ -19,6 +19,8 @@ const ChatInterface = () => {
     fileUrl,
     fileType,
   });
+
+  const { isEditing, setIsEditing, handleEditMessage, handleDeleteMessage, handleSaveEdit } = useMessageActions({ messages, setMessages, chatId });
   
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -26,42 +28,6 @@ const ChatInterface = () => {
       const form = e.currentTarget.closest('form');
       if (form) {
         handleSubmit({ preventDefault: () => {}, currentTarget: form } as React.FormEvent<HTMLFormElement>);
-      }
-    }
-  };
-
-  const handleEditMessage = (id: string, content: string) => {
-    setIsEditing({ id, content });
-    setInput(content);
-  };
-
-  const handleDeleteMessage = (id: string) => {
-    setMessages(messages.filter((msg) => msg.id !== id));
-  };
-
-  const handleSaveEdit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!isEditing) return;
-
-    setMessages(
-      messages.map((m) =>
-        m.id === isEditing.id ? { ...m, content: input } : m
-      )
-    );
-
-    setIsEditing(null);
-    setInput("");
-    removeFile();
-
-    if (chatId) {
-      try {
-        await fetch(`/api/v1/chats/messages/${isEditing.id}`, {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ content: input }),
-        });
-      } catch (error) {
-        console.error("Failed to update message:", error);
       }
     }
   };

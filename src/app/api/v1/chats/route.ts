@@ -2,14 +2,14 @@ import { connectToDB } from '@/lib/db';
 import { Chat } from '@/models/chat';
 import { NextRequest, NextResponse } from 'next/server';
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function GET(request: NextRequest) {
   try {
     await connectToDB();
     
-    const chat = await Chat.findById(params.id);
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get('id');
+    
+    const chat = await Chat.findById(id);
     
     if (!chat) {
       return NextResponse.json(
@@ -28,17 +28,17 @@ export async function GET(
   }
 }
 
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function PUT(request: NextRequest) {
   try {
     await connectToDB();
+    
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get('id');
     
     const { title } = await request.json();
     
     const chat = await Chat.findByIdAndUpdate(
-      params.id,
+      id,
       { title },
       { new: true }
     );
@@ -60,14 +60,14 @@ export async function PUT(
   }
 }
 
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function DELETE(request: NextRequest) {
   try {
     await connectToDB();
     
-    const chat = await Chat.findByIdAndDelete(params.id);
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get('id');
+    
+    const chat = await Chat.findByIdAndDelete(id);
     
     if (!chat) {
       return NextResponse.json(
