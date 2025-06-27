@@ -7,19 +7,24 @@ import ChatHeader from "./chat-area/header";
 import ChatInput from "./chat-area/chat-input";
 import MessageContainer from "./chat-area/message-container";
 import { useUser } from "@clerk/nextjs";
+import { useFileUpload } from "@/hooks/useFileUpload";
 
 export default function ChatInterface() {
   const { user } = useUser();
-  const [file, setFile] = useState<File | null>(null);
-  const [fileUrl, setFileUrl] = useState<string | null>(null);
-  const [fileType, setFileType] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState<{
     id: string;
     content: string;
   } | null>(null);
-  const [isUploading, setIsUploading] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const [chatId, setChatId] = useState<string | null>(null);
+  const {
+    file,
+    fileUrl,
+    fileType,
+    fileInputRef,
+    isUploading,
+    handleFileChange,
+    removeFile,
+  } = useFileUpload();
 
   const {
     messages,
@@ -39,9 +44,7 @@ export default function ChatInterface() {
     },
     onFinish: () => {
       setInput("");
-      setFile(null);
-      setFileUrl(null);
-      setFileType(null);
+      removeFile();
     },
   });
 
@@ -53,7 +56,6 @@ export default function ChatInterface() {
     try {
       let currentChatId = chatId;
       
-      // If no chatId exists, create a new chat first
       if (!currentChatId) {
         const chatRes = await fetch("/api/v1/chats/create", {
           method: "POST",
@@ -69,7 +71,6 @@ export default function ChatInterface() {
           currentChatId = newChatId;
           setChatId(newChatId);
           
-          // Use append method for the first message with the new chatId
           await append({
             role: "user",
             content: input,
@@ -82,18 +83,13 @@ export default function ChatInterface() {
             }
           });
           
-          // Clear the input and file states
           setInput("");
-          setFile(null);
-          setFileUrl(null);
-          setFileType(null);
+          removeFile();
           return;
         }
       }
 
-      // For subsequent messages, use the regular handleSubmit
       handleSubmit(e);
-
     } catch (error) {
       console.error("Error in submit:", error);
     }
@@ -130,9 +126,7 @@ export default function ChatInterface() {
 
     setIsEditing(null);
     setInput("");
-    setFile(null);
-    setFileUrl(null);
-    setFileType(null);
+    removeFile();
 
     if (chatId) {
       try {
@@ -147,42 +141,6 @@ export default function ChatInterface() {
     }
   };
 
-  async function uploadFileToAPI(file: File) {
-    const form = new FormData();
-    form.append("file", file);
-
-    const res = await fetch("/api/v1/upload", { method: "POST", body: form });
-    if (!res.ok) throw new Error("Upload failed");
-    
-    const json = await res.json();
-    return { url: json.imgUrl as string, type: json.fileType as string };
-  }
-
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files?.[0]) return;
-    const selectedFile = e.target.files[0];
-    setIsUploading(true);
-
-    try {
-      const { url, type } = await uploadFileToAPI(selectedFile);
-      setFile(selectedFile);
-      setFileUrl(url);
-      setFileType(type);
-    } catch (error) {
-      console.error("Upload failed:", error);
-      // You might want to show an error message to the user here
-    } finally {
-      setIsUploading(false);
-    }
-  };
-
-  const removeFile = () => {
-    setFile(null);
-    setFileUrl(null);
-    setFileType(null);
-    if (fileInputRef.current) fileInputRef.current.value = "";
-  };
-
   const messagesEndRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -191,9 +149,7 @@ export default function ChatInterface() {
   const resetChat = () => {
     setMessages([]);
     setInput("");
-    setFile(null);
-    setFileUrl(null);
-    setFileType(null);
+    removeFile();
     setChatId(null);
   };
 
