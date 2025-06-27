@@ -136,11 +136,7 @@ export default function ChatInterface() {
 
     if (chatId) {
       try {
-<<<<<<< HEAD
-        await fetch(`/api/v1/chats/${chatId}/messages/${isEditing.id}`, {
-=======
         await fetch(`/api/v1/chats/messages/${isEditing.id}`, {
->>>>>>> dev
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ content: input }),
