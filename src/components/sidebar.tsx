@@ -34,6 +34,11 @@ const Sidebar = ({ setMessages, setInput, setFile, setFileUrl }: SidebarProps) =
         "ChatGPT Model Type 3",
         "ChatGPT Model Type 4",
         "ChatGPT Model Type 5",
+        "ChatGPT Model Type 6",
+        "ChatGPT Model Type 7",
+        "ChatGPT Model Type 8",
+        "ChatGPT Model Type 9",
+        "ChatGPT Model Type 10",
     ];
 
     const handleNewChat = () => {
@@ -117,7 +122,7 @@ const Sidebar = ({ setMessages, setInput, setFile, setFileUrl }: SidebarProps) =
                         <button
                             key={index}
                             onClick={() => handleChatSelect(chat)}
-                            className={`w-full text-left text-sm text-white hover:bg-[#2f2f2f] rounded-lg p-2.5 truncate transition-colors ${selectedChat === chat ? "bg-[#2f2f2f]" : ""
+                            className={`w-full text-left text-sm text-white hover:bg-[#2f2f2f] rounded-lg p-2 truncate transition-colors ${selectedChat === chat ? "bg-[#2f2f2f]" : ""
                                 }`}
                         >
                             {chat}
