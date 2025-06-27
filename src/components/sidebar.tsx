@@ -112,12 +112,12 @@ const Sidebar = ({ setMessages, setInput, setFile, setFileUrl }: SidebarProps) =
                     </Button>
                 </div>
                 <h3 className="text-sm font-medium text-gray-300 mb-2 px-3 tracking-wider">Chats</h3>
-                <div className="space-y-1">
+                <div className="space-y-0 mx-1">
                     {chatHistory.map((chat, index) => (
                         <button
                             key={index}
                             onClick={() => handleChatSelect(chat)}
-                            className={`w-full text-left text-sm text-white hover:bg-[#2f2f2f] rounded-lg p-3 truncate transition-colors ${selectedChat === chat ? "bg-[#2f2f2f]" : ""
+                            className={`w-full text-left text-sm text-white hover:bg-[#2f2f2f] rounded-lg p-2.5 truncate transition-colors ${selectedChat === chat ? "bg-[#2f2f2f]" : ""
                                 }`}
                         >
                             {chat}
