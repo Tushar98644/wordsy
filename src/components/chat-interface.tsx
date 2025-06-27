@@ -136,7 +136,11 @@ export default function ChatInterface() {
 
     if (chatId) {
       try {
+<<<<<<< HEAD
         await fetch(`/api/v1/chats/${chatId}/messages/${isEditing.id}`, {
+=======
+        await fetch(`/api/v1/chats/messages/${isEditing.id}`, {
+>>>>>>> dev
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ content: input }),
@@ -188,13 +192,21 @@ export default function ChatInterface() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  const resetChat = () => {
+    setMessages([]);
+    setInput("");
+    setFile(null);
+    setFileUrl(null);
+    setFileType(null);
+    setChatId(null);
+  };
+
   return (
     <div className="flex h-screen bg-[#212121] text-white">
       <Sidebar
-        setInput={setInput}
+        resetChat={resetChat}
         setMessages={setMessages}
-        setFile={setFile}
-        setFileUrl={setFileUrl}
+        setChatId={setChatId}
       />
 
       {/* Main content */}

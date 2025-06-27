@@ -59,12 +59,14 @@ export async function POST(req: Request) {
       messages: core,
       maxTokens: 4000,
     });
-
-    // Convert streamed result to text
-    const fullResponse = result.toDataStreamResponse();
-
-    // Extract text from the Response object
-    const responseText = await fullResponse.text();
+    
+    const resultStream = result.toDataStream();
+    
+    const chunks = [];
+    for await (const chunk of result.textStream) {
+      chunks.push(chunk);
+    }
+    const responseText = chunks.join("");
 
     // Save both messages to DB
     if (chatId && userId) {
@@ -89,7 +91,7 @@ export async function POST(req: Request) {
       });
     }
 
-    return new Response(responseText, {
+    return new Response(resultStream, {
       status: 200,
       headers: { "Content-Type": "text/plain" },
     });
