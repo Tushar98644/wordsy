@@ -1,9 +1,9 @@
 "use client"
 
-import ChatInterface2 from "@/components/chat-interface"
+import ChatInterface from "@/components/chat-interface"
 
 export default function Home() {
   return (
-    <ChatInterface2 />
+    <ChatInterface />
   )
 }

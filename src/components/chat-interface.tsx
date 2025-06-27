@@ -1,20 +1,25 @@
-'use client';
+"use client";
 
-import { useChat } from '@ai-sdk/react';
-import { useState, useRef, useEffect } from 'react';
-import Sidebar from './sidebar';
-import ChatHeader from './chat-area/header';
-import ChatInput from './chat-area/chat-input';
-import MessageContainer from './chat-area/message-container';
+import { useChat } from "@ai-sdk/react";
+import { useState, useRef, useEffect } from "react";
+import Sidebar from "./sidebar";
+import ChatHeader from "./chat-area/header";
+import ChatInput from "./chat-area/chat-input";
+import MessageContainer from "./chat-area/message-container";
+import { useUser } from "@clerk/nextjs";
 
 export default function ChatInterface() {
+  const { user } = useUser();
   const [file, setFile] = useState<File | null>(null);
   const [fileUrl, setFileUrl] = useState<string | null>(null);
   const [fileType, setFileType] = useState<string | null>(null);
-  const [isEditing, setIsEditing] = useState<{ id: string; content: string } | null>(null);
+  const [isEditing, setIsEditing] = useState<{
+    id: string;
+    content: string;
+  } | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const userId = "user_123";
+  const [chatId, setChatId] = useState<string | null>(null);
 
   const {
     messages,
@@ -23,74 +28,123 @@ export default function ChatInterface() {
     handleInputChange,
     handleSubmit,
     setMessages,
+    append,
   } = useChat({
-    api: '/api/v1/chat',
-    body: { userId },
+    api: "/api/v1/chat",
+    body: { 
+      userId: user?.id || null,
+      chatId,
+      fileUrl: fileUrl || undefined,
+      fileType: fileType || undefined,
+    },
     onFinish: () => {
-      // clear states after assistant response
+      setInput("");
       setFile(null);
       setFileUrl(null);
       setFileType(null);
-      setInput('');
-    }
+    },
   });
 
-  // Custom submit to push user message immediately
-  const handleUserSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleCustomSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!input.trim() && !fileUrl) return;
+    if (!user?.id) return;
 
-    // create structured content
-    const userMessage = {
-      id: crypto.randomUUID(),
-      role: 'user' as const,
-      content: fileUrl && fileType
-        ? `${input.trim()}\n[File](${fileUrl})`
-        : input.trim(),
-    };
+    try {
+      let currentChatId = chatId;
+      
+      // If no chatId exists, create a new chat first
+      if (!currentChatId) {
+        const chatRes = await fetch("/api/v1/chats/create", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            title: input.trim().slice(0, 50) || "New Chat",
+            userId: user.id,
+          }),
+        });
 
-    // optimistic UI update
-    setMessages(prev => [...prev, userMessage]);
+        if (chatRes.ok) {
+          const { chatId: newChatId } = await chatRes.json();
+          currentChatId = newChatId;
+          setChatId(newChatId);
+          
+          // Use append method for the first message with the new chatId
+          await append({
+            role: "user",
+            content: input,
+          }, {
+            body: {
+              userId: user.id,
+              chatId: currentChatId,
+              fileUrl: fileUrl || undefined,
+              fileType: fileType || undefined,
+            }
+          });
+          
+          // Clear the input and file states
+          setInput("");
+          setFile(null);
+          setFileUrl(null);
+          setFileType(null);
+          return;
+        }
+      }
 
-    // reset input/file
-    setInput('');
-    setFile(null);
-    setFileUrl(null);
-    setFileType(null);
-    if (fileInputRef.current) fileInputRef.current.value = '';
+      // For subsequent messages, use the regular handleSubmit
+      handleSubmit(e);
 
-    // call the SDK submit which sends to API and appends assistant response
-    handleSubmit(e);
+    } catch (error) {
+      console.error("Error in submit:", error);
+    }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
+    if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      handleUserSubmit(e as unknown as React.FormEvent<HTMLFormElement>);
+      const form = e.currentTarget.closest('form');
+      if (form) {
+        handleCustomSubmit({ preventDefault: () => {}, currentTarget: form } as React.FormEvent<HTMLFormElement>);
+      }
     }
   };
-  
+
   const handleEditMessage = (id: string, content: string) => {
     setIsEditing({ id, content });
     setInput(content);
   };
 
   const handleDeleteMessage = (id: string) => {
-    setMessages(messages.filter(msg => msg.id !== id));
+    setMessages(messages.filter((msg) => msg.id !== id));
   };
 
-   const handleSaveEdit = async (e: React.FormEvent) => {
+  const handleSaveEdit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!isEditing) return;
 
-    setMessages(messages.map(m =>
-      m.id === isEditing.id ? { ...m, content: input } : m
-    ));
+    setMessages(
+      messages.map((m) =>
+        m.id === isEditing.id ? { ...m, content: input } : m
+      )
+    );
 
     setIsEditing(null);
-    setInput('');
+    setInput("");
     setFile(null);
     setFileUrl(null);
+    setFileType(null);
+
+    if (chatId) {
+      try {
+        await fetch(`/api/v1/chats/${chatId}/messages/${isEditing.id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ content: input }),
+        });
+      } catch (error) {
+        console.error("Failed to update message:", error);
+      }
+    }
   };
 
   async function uploadFileToAPI(file: File) {
@@ -98,6 +152,8 @@ export default function ChatInterface() {
     form.append("file", file);
 
     const res = await fetch("/api/v1/upload", { method: "POST", body: form });
+    if (!res.ok) throw new Error("Upload failed");
+    
     const json = await res.json();
     return { url: json.imgUrl as string, type: json.fileType as string };
   }
@@ -113,7 +169,8 @@ export default function ChatInterface() {
       setFileUrl(url);
       setFileType(type);
     } catch (error) {
-      console.error('Upload failed:', error);
+      console.error("Upload failed:", error);
+      // You might want to show an error message to the user here
     } finally {
       setIsUploading(false);
     }
@@ -123,24 +180,29 @@ export default function ChatInterface() {
     setFile(null);
     setFileUrl(null);
     setFileType(null);
-    if (fileInputRef.current) fileInputRef.current.value = '';
+    if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
   return (
     <div className="flex h-screen bg-[#212121] text-white">
-      <Sidebar setInput={setInput} setMessages={setMessages} setFile={setFile} setFileUrl={setFileUrl} />
+      <Sidebar
+        setInput={setInput}
+        setMessages={setMessages}
+        setFile={setFile}
+        setFileUrl={setFileUrl}
+      />
 
       {/* Main content */}
       <div className="flex-1 flex flex-col">
         <ChatHeader />
 
         {/* Chat area */}
-        <div className="flex-1 flex flex-col overflow-scroll">
+        <div className="flex-1 flex flex-col overflow-hidden">
           {messages.length === 0 ? (
             <div className="flex flex-1 flex-col items-center justify-center px-4">
               <h1 className="text-[40px] font-normal text-center mb-12 text-white leading-tight">
@@ -151,7 +213,7 @@ export default function ChatInterface() {
                   input={input}
                   handleInputChange={handleInputChange}
                   handleKeyPress={handleKeyPress}
-                  handleSubmit={handleUserSubmit}
+                  handleSubmit={handleCustomSubmit}
                   fileInputRef={fileInputRef}
                   handleFileChange={handleFileChange}
                   file={file}
@@ -165,18 +227,21 @@ export default function ChatInterface() {
               </div>
             </div>
           ) : (
-            <>
-              <MessageContainer
-                messages={messages}
-                handleEditMessage={handleEditMessage}
-                handleDeleteMessage={handleDeleteMessage}
-                messagesEndRef={messagesEndRef} />
-              <div className="w-full max-w-4xl mx-auto justify-self-end items-end">
+            <div className="flex flex-col flex-1 overflow-hidden">
+              <div className="flex-1 overflow-auto">
+                <MessageContainer
+                  messages={messages}
+                  handleEditMessage={handleEditMessage}
+                  handleDeleteMessage={handleDeleteMessage}
+                  messagesEndRef={messagesEndRef}
+                />
+              </div>
+              <div className="flex-shrink-0 w-full max-w-4xl mx-auto p-4">
                 <ChatInput
                   input={input}
                   handleInputChange={handleInputChange}
                   handleKeyPress={handleKeyPress}
-                  handleSubmit={handleSubmit}
+                  handleSubmit={handleCustomSubmit}
                   fileInputRef={fileInputRef}
                   handleFileChange={handleFileChange}
                   file={file}
@@ -185,8 +250,10 @@ export default function ChatInterface() {
                   isEditing={isEditing}
                   setIsEditing={setIsEditing}
                   handleSaveEdit={handleSaveEdit}
-                  removeFile={removeFile} />
-              </div></>
+                  removeFile={removeFile}
+                />
+              </div>
+            </div>
           )}
         </div>
       </div>

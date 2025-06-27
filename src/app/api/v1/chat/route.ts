@@ -1,11 +1,17 @@
 import { gemini } from "@/config/gemini";
 import { convertToCoreMessages, streamText } from "ai";
+import { Chat } from "@/models/chat";
+import { connectToDB } from "@/lib/db";
+import { nanoid } from "nanoid";
 
 export async function POST(req: Request) {
   try {
-    const { messages, fileUrl } = await req.json();
+    await connectToDB();
+
+    const { messages, fileUrl, chatId, userId } = await req.json();
     const enhanced = [...messages];
 
+    // Enhance with file content (if exists)
     if (fileUrl && messages.length > 0) {
       const last = messages[messages.length - 1];
       if (last.role === "user") {
@@ -30,6 +36,7 @@ export async function POST(req: Request) {
       }
     }
 
+    // Context window trimming
     const maxContextLength = 100000;
     let count = 0;
     const filtered: typeof enhanced = [];
@@ -45,13 +52,47 @@ export async function POST(req: Request) {
     }
 
     const core = convertToCoreMessages(filtered);
+
+    // Run model
     const result = streamText({
       model: gemini("gemini-2.5-flash"),
       messages: core,
       maxTokens: 4000,
     });
 
-    return result.toDataStreamResponse();
+    // Convert streamed result to text
+    const fullResponse = result.toDataStreamResponse();
+
+    // Extract text from the Response object
+    const responseText = await fullResponse.text();
+
+    // Save both messages to DB
+    if (chatId && userId) {
+      const userMessage = {
+        id: nanoid(),
+        role: "user",
+        content: messages[messages.length - 1].content,
+        createdAt: new Date(),
+      };
+
+      const assistantMessage = {
+        id: nanoid(),
+        role: "assistant",
+        content: responseText,
+        createdAt: new Date(),
+      };
+
+      await Chat.findByIdAndUpdate(chatId, {
+        $push: {
+          messages: { $each: [userMessage, assistantMessage] },
+        },
+      });
+    }
+
+    return new Response(responseText, {
+      status: 200,
+      headers: { "Content-Type": "text/plain" },
+    });
   } catch (e) {
     console.error("Chat API error:", e);
     return new Response(JSON.stringify({ error: (e as Error).message }), { status: 500 });

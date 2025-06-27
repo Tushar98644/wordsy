@@ -1,4 +1,4 @@
-import ChatInterface from '@/components/chat'
+import ChatInterface from '@/components/chat-interface';
 
 const ChatPage = () => {
   return (

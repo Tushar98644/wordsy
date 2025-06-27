@@ -8,7 +8,8 @@ import { SettingsIcon } from "@/components/icons/SettingsIcon";
 import { SoraIcon } from "@/components/icons/SoraIcon";
 import { LogoIcon } from "@/components/icons/LogoIcon";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useUser } from "@clerk/nextjs";
 
 type SidebarProps = {
     setMessages: (messages: any[]) => void;
@@ -17,48 +18,51 @@ type SidebarProps = {
     setFileUrl: (fileUrl: string | null) => void;
 };
 
-const Sidebar = ({ setMessages, setInput, setFile, setFileUrl }: SidebarProps) => {
-
+const Sidebar = ({
+    setMessages,
+    setInput,
+    setFile,
+    setFileUrl,
+}: SidebarProps) => {
+    const { user } = useUser();
     const [selectedChat, setSelectedChat] = useState<string | null>(null);
+    const [chats, setChats] = useState<{ _id: string, title: string }[]>([]);
 
-    const chatHistory = [
-        "React infinite re-render fix",
-        "Next.js HTTP methods fix",
-        "Application Confirmation and Ca...",
-        "Stack Elements Vertically",
-        "Mobile site blocker",
-        "Backend Language Comparison",
-        "Catrobat Sunbird UCI Summary",
-        "ChatGPT Model Type",
-        "ChatGPT Model Type 2",
-        "ChatGPT Model Type 3",
-        "ChatGPT Model Type 4",
-        "ChatGPT Model Type 5",
-        "ChatGPT Model Type 6",
-        "ChatGPT Model Type 7",
-        "ChatGPT Model Type 8",
-        "ChatGPT Model Type 9",
-        "ChatGPT Model Type 10",
-    ];
+    useEffect(() => {
+        const fetchChats = async () => {
+            if (!user?.id) return;
+
+            try {
+                const res = await fetch(`/api/v1/chats/list?userId=${user?.id}`);
+                const data = await res.json();
+                setChats(data.chats || []);
+            } catch (err) {
+                console.error("Error fetching chats:", err);
+            }
+        };
+        fetchChats();
+    }, [user?.id]);
 
     const handleNewChat = () => {
         setMessages([]);
         setSelectedChat(null);
-        setInput('');
+        setInput("");
         setFile(null);
         setFileUrl(null);
     };
 
-    const handleChatSelect = async (chat: string) => {
-        setSelectedChat(chat);
-        setMessages([]);
-        setInput('');
+    const handleChatSelect = async (chatId: string) => {
+        setSelectedChat(chatId);
+        setInput("");
         setFile(null);
         setFileUrl(null);
 
         try {
+            const res = await fetch(`/api/v1/chats/${chatId}/messages`);
+            const msgs = await res.json();
+            setMessages(msgs);
         } catch (error) {
-            console.error('Error recalling conversation:', error);
+            console.error("Error loading chat messages:", error);
         }
     };
 
@@ -116,33 +120,44 @@ const Sidebar = ({ setMessages, setInput, setFile, setFileUrl }: SidebarProps) =
                         GPTs
                     </Button>
                 </div>
-                <h3 className="text-sm font-medium text-gray-300 mb-2 px-3 tracking-wider">Chats</h3>
+                <h3 className="text-sm font-medium text-gray-300 mb-2 px-3 tracking-wider">
+                    Chats
+                </h3>
                 <div className="space-y-0 mx-1">
-                    {chatHistory.map((chat, index) => (
-                        <button
-                            key={index}
-                            onClick={() => handleChatSelect(chat)}
-                            className={`w-full text-left text-sm text-white hover:bg-[#2f2f2f] rounded-lg p-2 truncate transition-colors ${selectedChat === chat ? "bg-[#2f2f2f]" : ""
-                                }`}
-                        >
-                            {chat}
-                        </button>
-                    ))}
+                    {chats.length > 0 ? (
+                        chats.map((chat, index) => (
+                            <button
+                                key={index}
+                                onClick={() => handleChatSelect(chat._id)}
+                                className={`w-full text-left text-sm text-white hover:bg-[#2f2f2f] rounded-lg p-2 truncate transition-colors ${selectedChat === chat._id ? "bg-[#2f2f2f]" : ""}`}
+                            >
+                                {chat.title}
+                            </button>
+                        ))
+                    ) : (
+                        <p className="text-gray-400 text-sm px-2">No chats yet</p>
+                    )}
                 </div>
+
             </div>
 
             {/* Bottom section */}
             <div className="p-3 border-t border-[#2f2f2f]">
-                <Button variant="default" className="w-full justify-start text-white hover:bg-[#2f2f2f] rounded-lg p-3">
+                <Button
+                    variant="default"
+                    className="w-full justify-start text-white hover:bg-[#2f2f2f] rounded-lg p-3"
+                >
                     <SettingsIcon className="size-5 mr-0" />
                     <div className="flex flex-col items-start">
                         <span className="text-sm">Upgrade plan</span>
-                        <span className="text-xs text-white">More access to the best models</span>
+                        <span className="text-xs text-white">
+                            More access to the best models
+                        </span>
                     </div>
                 </Button>
             </div>
         </div>
     );
-}
+};
 
 export default Sidebar;
