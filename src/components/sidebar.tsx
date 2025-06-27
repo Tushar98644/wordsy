@@ -46,8 +46,8 @@ const Sidebar = ({
 
     const handleChatSelect = async (chatId: string) => {
         setSelectedChat(chatId);
-        setChatId(chatId);
         resetChat();
+        setChatId(chatId);
 
         try {
             const res = await axios.get(`/api/v1/chats/messages?chatId=${chatId}`);
