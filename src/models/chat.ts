@@ -1,12 +1,21 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
+export interface IFile {
+  fileId: string;
+  fileName: string;
+  fileUrl: string;
+  mimeType: string;
+  size: number;
+  uploadedAt: Date;
+}
+
+
 export interface IMessage {
   id: string;
   role: 'user' | 'assistant' | 'system';
   content: string;
   timestamp: Date;
-  fileUrl?: string;
-  fileType?: string;
+  files?: IFile[];
 }
 
 export interface IChat extends Document {
@@ -18,14 +27,29 @@ export interface IChat extends Document {
   updatedAt: Date;
 }
 
-const MessageSchema = new Schema<IMessage>({
-  id: { type: String, required: true },
-  role: { type: String, enum: ['user', 'assistant'], required: true },
-  content: { type: String, required: true },
-  timestamp: { type: Date, default: Date.now },
-  fileUrl: { type: String },
-  fileType: { type: String }
-});
+const FileSchema = new Schema<IFile>({
+  fileId: { type: String, required: true },
+  fileName: { type: String, required: true },
+  fileUrl: { type: String, required: true },
+  mimeType: { type: String, required: true },
+  size: { type: Number, required: true },
+  uploadedAt: { type: Date }
+}, { _id: false });
+
+const MessageSchema = new Schema({
+  id: String,
+  role: String,
+  content: mongoose.Schema.Types.Mixed,
+  timestamp: Date,
+  files: [{
+    fileId: String,
+    fileName: String,
+    fileUrl: String,
+    mimeType: String,
+    size: Number,
+    uploadedAt: Date
+  }]
+}, { _id: false });
 
 const ChatSchema = new Schema<IChat>({
   title: { type: String, required: true },
@@ -35,7 +59,6 @@ const ChatSchema = new Schema<IChat>({
   updatedAt: { type: Date, default: Date.now }
 });
 
-// Update the updatedAt field on save
 ChatSchema.pre('save', function(next) {
   this.updatedAt = new Date();
   next();

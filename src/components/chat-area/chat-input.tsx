@@ -1,7 +1,14 @@
-import { X, Plus, Shuffle, Mic, AudioLines } from "lucide-react";
+import { X, Plus, Shuffle, Mic, AudioLines, FileText, Image as ImageIcon } from "lucide-react";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import TopControls from "./top-controls";
+
+interface FileMetadata {
+    fileId: string;
+    fileName: string;
+    mimeType: string;
+    size: number;   
+}
 
 interface ChatInputProps {
     input: string;
@@ -12,6 +19,7 @@ interface ChatInputProps {
     handleFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
     file: File | null;
     fileUrl?: string | null;
+    fileMetadata: FileMetadata | null;
     isUploading: boolean;
     isLoading: boolean;
     isEditing: { id: string; content: string } | null;
@@ -29,6 +37,7 @@ const ChatInput = ({
     handleFileChange,
     file,
     fileUrl,
+    fileMetadata,
     isUploading,
     isLoading,
     isEditing,
@@ -38,8 +47,31 @@ const ChatInput = ({
 }: ChatInputProps) => {
     const isDisabled = isUploading || isLoading;
 
+    const formatFileSize = (bytes: number): string => {
+        if (bytes === 0) return '0 B';
+        const k = 1024;
+        const sizes = ['B', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+    };
+
+    const getFilePreviewUrl = () => {
+        if (fileUrl) return fileUrl;
+        if (file) return URL.createObjectURL(file);
+        return null;
+    };
+
+    const displayFilename = fileMetadata?.fileName || file?.name || 'Uploaded file';
+    const displayMimeType = fileMetadata?.mimeType || file?.type || '';
+    const displaySize = fileMetadata?.size || file?.size;
+    const previewUrl = getFilePreviewUrl();
+
+    const isImage = displayMimeType.startsWith('image/');
+    const isPDF = displayMimeType.includes('pdf');
+    const isDocument = displayMimeType.includes('document') || displayMimeType.includes('text');
+
     return (
-        <div className="w-full max-w-4xl mx-auto px-4 pb-8 ">
+        <div className="w-full max-w-4xl mx-auto px-4 pb-8">
             <TopControls />
 
             {isEditing && (
@@ -52,28 +84,94 @@ const ChatInput = ({
                 </div>
             )}
 
-            {(file || fileUrl) && (
-                <div className="mb-3 flex items-center justify-between p-2 bg-[#2f2f2f] rounded-lg">
-                    <div className="flex items-center gap-2">
-                        <div className="bg-gray-500 w-8 h-8 rounded flex items-center justify-center">
-                            <span className="text-xs">{file?.type.startsWith('image') ? 'IMG' : 'DOC'}</span>
+            {/* Enhanced File Preview */}
+            {(file || fileUrl || fileMetadata) && (
+                <div className="mb-4 p-4 bg-[#2f2f2f] rounded-xl border border-gray-600">
+                    <div className="flex gap-4">
+                        {/* File Preview */}
+                        <div className="flex-shrink-0">
+                            {isImage && previewUrl ? (
+                                <div className="relative">
+                                    <img 
+                                        src={previewUrl} 
+                                        alt={displayFilename}
+                                        className="w-20 h-20 object-cover rounded-lg border border-gray-500"
+                                    />
+                                    {isUploading && (
+                                        <div className="absolute inset-0 bg-black bg-opacity-50 rounded-lg flex items-center justify-center">
+                                            <div className="flex space-x-1">
+                                                <div className="w-2 h-2 bg-white rounded-full animate-bounce" />
+                                                <div className="w-2 h-2 bg-white rounded-full animate-bounce delay-75" />
+                                                <div className="w-2 h-2 bg-white rounded-full animate-bounce delay-150" />
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            ) : (
+                                <div className="w-20 h-20 bg-gray-600 rounded-lg flex items-center justify-center relative">
+                                    {isPDF ? (
+                                        <FileText className="w-8 h-8 text-red-400" />
+                                    ) : isDocument ? (
+                                        <FileText className="w-8 h-8 text-blue-400" />
+                                    ) : (
+                                        <FileText className="w-8 h-8 text-gray-400" />
+                                    )}
+                                    {isUploading && (
+                                        <div className="absolute inset-0 bg-black bg-opacity-50 rounded-lg flex items-center justify-center">
+                                            <div className="flex space-x-1">
+                                                <div className="w-2 h-2 bg-white rounded-full animate-bounce" />
+                                                <div className="w-2 h-2 bg-white rounded-full animate-bounce delay-75" />
+                                                <div className="w-2 h-2 bg-white rounded-full animate-bounce delay-150" />
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
                         </div>
-                        <span className="text-sm text-gray-400 truncate max-w-xs">
-                            {file?.name || 'Uploaded file'}
-                        </span>
-                        {isUploading && (
-                            <div className="ml-2 flex space-x-1">
-                                <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" />
-                                <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce delay-75" />
-                                <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce delay-150" />
+
+                        {/* File Info */}
+                        <div className="flex-1 min-w-0">
+                            <div className="flex items-start justify-between">
+                                <div className="flex-1 min-w-0">
+                                    <h4 className="text-white font-medium truncate text-sm">
+                                        {displayFilename}
+                                    </h4>
+                                    <div className="flex items-center gap-2 mt-1">
+                                        {displaySize && (
+                                            <span className="text-xs text-gray-400">
+                                                {formatFileSize(displaySize)}
+                                            </span>
+                                        )}
+                                        <span className="text-xs text-gray-500">
+                                            {isPDF ? 'PDF Document' : 
+                                             isImage ? 'Image' : 
+                                             isDocument ? 'Document' : 'File'}
+                                        </span>
+                                    </div>
+                                    {isUploading && (
+                                        <div className="mt-2">
+                                            <div className="w-full bg-gray-600 rounded-full h-1">
+                                                <div className="bg-blue-500 h-1 rounded-full animate-pulse" style={{width: '60%'}}></div>
+                                            </div>
+                                            <span className="text-xs text-gray-400 mt-1">Uploading...</span>
+                                        </div>
+                                    )}
+                                </div>
+                                <Button 
+                                    variant="ghost" 
+                                    size="icon" 
+                                    className="text-gray-400 hover:text-white hover:bg-gray-600 ml-2" 
+                                    onClick={removeFile} 
+                                    disabled={isDisabled}
+                                >
+                                    <X className="w-4 h-4" />
+                                </Button>
                             </div>
-                        )}
+                        </div>
                     </div>
-                    <Button variant="ghost" size="icon" className="text-gray-400 hover:text-white" onClick={removeFile} disabled={isDisabled}>
-                        <X className="w-4 h-4" />
-                    </Button>
                 </div>
             )}
+
             <div className="bg-[#2f2f2f] rounded-[30px] p-4">
                 <form onSubmit={handleSubmit}>
                     <div className="relative">
@@ -86,7 +184,7 @@ const ChatInput = ({
                             className="bg-transparent border-none text-white placeholder-gray-500 text-[18px] px-6 py-6 focus:ring-0 focus:outline-none rounded-[32px] resize-none"
                         />
 
-                        {(input.trim() || file) && (
+                        {(input.trim() || file || fileMetadata) && (
                             <Button
                                 type="submit"
                                 disabled={isDisabled}
@@ -112,7 +210,7 @@ const ChatInput = ({
                         <Button
                             variant="ghost"
                             size="icon"
-                            className="text-gray-400"
+                            className="text-gray-400 hover:text-gray-200"
                             type="button"
                             onClick={() => fileInputRef.current?.click()}
                             disabled={isDisabled}
@@ -128,25 +226,24 @@ const ChatInput = ({
                             />
                         </Button>
 
-                        <Button variant="ghost" className="text-gray-400 flex items-center gap-2" disabled={isDisabled}>
+                        <Button variant="ghost" className="text-gray-400 hover:text-gray-200 flex items-center gap-2" disabled={isDisabled}>
                             <Shuffle className="w-4 h-4" />
                             <span className="text-sm">Tools</span>
                         </Button>
                     </div>
 
                     <div className="flex gap-2">
-                        <Button variant="ghost" size="icon" className="text-gray-400" disabled={isDisabled}>
+                        <Button variant="ghost" size="icon" className="text-gray-400 hover:text-gray-200" disabled={isDisabled}>
                             <Mic className="w-5 h-5" />
                         </Button>
-                        <Button variant="ghost" size="icon" className="text-gray-400" disabled={isDisabled}>
+                        <Button variant="ghost" size="icon" className="text-gray-400 hover:text-gray-200" disabled={isDisabled}>
                             <AudioLines className="w-5 h-5" />
                         </Button>
                     </div>
                 </div>
             </div>
-
         </div>
     );
 };
 
-export default ChatInput;
+export default ChatInput;   

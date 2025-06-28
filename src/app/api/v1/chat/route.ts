@@ -1,63 +1,227 @@
-import { ChatService } from "@/lib/chat/chat-service";
-import { MemoryService } from "@/lib/chat/memory-service";
-import { MessageProcessor } from "@/lib/chat/message-processor";
+import { gemini } from "@/config/gemini";
+import { convertToCoreMessages, streamText } from "ai";
+import { Chat } from "@/models/chat";
 import { connectToDB } from "@/lib/db";
-import { ChatRequest } from "@/types/chat";
+import { nanoid } from "nanoid";
 
 export async function POST(req: Request) {
   try {
     await connectToDB();
+    console.log("[CHAT] Connected to DB ✅");
 
-    const { messages, fileUrl, chatId, userId }: ChatRequest = await req.json();
+    const { messages, fileUrl, fileMetadata, chatId, userId } = await req.json();
+    console.log("[CHAT] Request Body:", { userId, chatId, fileUrl, fileMetadata });
+
     const lastUserMessage = messages[messages.length - 1];
-    
-    const chatService = new ChatService();
-    const memoryService = new MemoryService();
+    console.log("[CHAT] Last user message:", lastUserMessage);
 
-    // Get memory context
     let memoryContext = '';
     let memoriesFound = 0;
 
     if (userId && lastUserMessage?.content) {
-      const query = MessageProcessor.extractTextContent(lastUserMessage.content);
-      const memory = await memoryService.getContext(userId, query);
-      memoryContext = memory.context;
-      memoriesFound = memory.memoriesFound;
+      try {
+        const query =
+          typeof lastUserMessage.content === 'string'
+            ? lastUserMessage.content
+            : lastUserMessage.content.find((c: { type: string }) => c.type === 'text')?.text || '';
+
+        const memoryResponse = await fetch(
+          `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/v1/memory`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'getContext', userId, query }),
+          }
+        );
+
+        if (memoryResponse.ok) {
+          const contentType = memoryResponse.headers.get('content-type');
+          if (contentType?.includes('application/json')) {
+            const memoryData = await memoryResponse.json();
+            memoryContext = memoryData.context;
+            memoriesFound = memoryData.memoriesFound;
+          } else {
+            console.warn("[MEMORY] Non-JSON response:", await memoryResponse.text());
+          }
+        } else {
+          console.warn("[MEMORY] API failed:", memoryResponse.status);
+        }
+      } catch (err) {
+        console.error("[MEMORY] Error getting memory:", err);
+      }
     }
 
-    // Process messages
-    let processedMessages = MessageProcessor.enhanceWithFile(messages, fileUrl || '');
-    processedMessages = MessageProcessor.trimContextWindow(processedMessages);
-    processedMessages = MessageProcessor.addMemoryContext(processedMessages, memoryContext);
+    const enhanced = [...messages];
+    let fileAttachment = null;
+    let enhancedUserMessage = null;
 
-    // Generate response
-    const { stream, text: responseText } = await chatService.generateResponse(processedMessages);
+    // Handle file attachment
+    if (fileUrl && fileMetadata && messages.length > 0) {
+      fileAttachment = {
+        fileId: fileMetadata.fileId || nanoid(),
+        fileName: fileMetadata.fileName,
+        fileUrl: fileUrl,
+        mimeType: fileMetadata.mimeType,
+        size: fileMetadata.size,
+        uploadedAt: new Date(),
+      };
+      console.log("[FILE] File attachment created:", fileAttachment);
+
+      const last = messages[messages.length - 1];
+      if (last.role === "user") {
+        const isImage = /\.(jpg|jpeg|png|gif|webp|bmp)$/i.test(fileUrl);
+        
+        // Create enhanced message for AI processing
+        enhancedUserMessage = {
+          role: "user",
+          content: [
+            { type: "text", text: last.content || "" },
+            isImage
+              ? { type: "image", image: fileUrl }
+              : { type: "file", data: fileUrl, mimeType: fileMetadata.mimeType || "application/pdf" },
+          ],
+          files: [fileAttachment],
+        };
+        
+        enhanced[enhanced.length - 1] = enhancedUserMessage;
+        console.log("[FILE] Enhanced user message with file:", enhancedUserMessage);
+      }
+    }
+
+    // Trim context
+    const maxContextLength = 100000;
+    let count = 0;
+    const filtered: typeof enhanced = [];
+    for (let i = enhanced.length - 1; i >= 0; i--) {
+      const msg = enhanced[i];
+      const length = typeof msg.content === "string"
+        ? msg.content.length
+        : JSON.stringify(msg.content).length;
+      const tokens = length / 4;
+      if (count + tokens > maxContextLength) break;
+      count += tokens;
+      filtered.unshift(msg);
+    }
+
+    if (memoryContext) {
+      filtered.unshift({
+        role: "system",
+        content: `You are a helpful AI assistant. Here's relevant context from previous conversations with this user: ${memoryContext}      
+        Use this context naturally to provide more personalized responses. Don't explicitly mention "I remember" unless relevant.`,
+      });
+    }
+
+    const core = convertToCoreMessages(filtered);
+
+    const result = streamText({
+      model: gemini("gemini-2.5-flash"),
+      messages: core,
+      maxTokens: 4000,
+    });
+
+    const resultStream = result.toDataStream();
+
+    const chunks = [];
+    for await (const chunk of result.textStream) {
+      chunks.push(chunk);
+    }
+    const responseText = chunks.join("");
 
     // Save to database
     if (chatId && userId) {
-      await chatService.saveToDatabase(chatId, lastUserMessage, responseText);
+      const originalUserMessage = messages[messages.length - 1];
+
+      const userMessage = {
+        id: nanoid(),
+        role: "user",
+        content: originalUserMessage.content,
+        timestamp: new Date(),
+        ...(fileAttachment && { files: [fileAttachment] })
+      };
+
+      console.log("[USER MESSAGE] User message for DB:", userMessage);
+
+      const assistantMessage = {
+        id: nanoid(),
+        role: "assistant",
+        content: responseText,
+        timestamp: new Date(),
+      };
+
+      console.log("[DB] Saving messages to chat:", chatId);
+      
+      try {
+        const updatedChat = await Chat.findByIdAndUpdate(
+          chatId, 
+          {
+            $push: { messages: { $each: [userMessage, assistantMessage] } },
+            $set: { updatedAt: new Date() },
+          },
+          { new: true }
+        );
+        console.log("[DB] Chat updated successfully ✅");
+        console.log("[DB] Last user message saved:", updatedChat.messages[updatedChat.messages.length - 2]);
+      } catch (dbError) {
+        console.error("[DB] Error updating chat:", dbError);
+      }
     }
 
-    // Store in memory
     if (userId) {
-      await chatService.processMemory(userId, lastUserMessage, responseText);
+      const userContent = typeof lastUserMessage.content === 'string'
+        ? lastUserMessage.content
+        : lastUserMessage.content.find((c: { type: string }) => c.type === 'text')?.text || '';
+
+      if (userContent) {
+        try {
+          await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/v1/memory`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              action: 'store',
+              userId,
+              content: userContent,
+              metadata: { 
+                role: 'user', 
+                type: 'conversation',
+                ...(fileAttachment && { hasFile: true, fileName: fileAttachment.fileName })
+              }
+            }),
+          });
+        } catch (err) {
+          console.error("[MEMORY] Error storing user message:", err);
+        }
+      }
+
+      if (responseText && responseText.length > 30) {
+        try {
+          const assistantMemoryRes = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/v1/memory`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              action: 'store',
+              userId,
+              content: responseText,
+              metadata: { role: 'assistant', type: 'conversation' },
+            }),
+          });
+          console.log("[MEMORY] Stored assistant message:", assistantMemoryRes.status);
+        } catch (err) {
+          console.error("[MEMORY] Error storing assistant message:", err);
+        }
+      }
     }
 
-    // Return response
-    return new Response(stream, {
+    return new Response(resultStream, {
       status: 200,
       headers: {
         "Content-Type": "text/plain",
-        "X-Memory-Context": memoriesFound > 0 ? 'true' : 'false',
-        "X-Memories-Found": memoriesFound.toString()
+        "X-Memory-Context": memoriesFound > 0 ? "true" : "false",
+        "X-Memories-Found": memoriesFound.toString(),
       },
     });
 
-  } catch (error) {
-    console.error("Chat API error:", error);
-    return new Response(
-      JSON.stringify({ error: (error as Error).message }), 
-      { status: 500 }
-    );
+  } catch (e) {
+    console.error("[ERROR] Chat API failed:", e);
+    return new Response(JSON.stringify({ error: (e as Error).message }), { status: 500 });
   }
 }

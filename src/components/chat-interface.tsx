@@ -12,12 +12,31 @@ import { useMessageActions } from "@/hooks/useMessageActions";
 
 const ChatInterface = () => {
   const { user } = useUser();
-  const { file, fileUrl, fileType, fileInputRef, isUploading, handleFileChange, removeFile } = useFileUpload();
+  const { 
+    file, 
+    fileUrl, 
+    fileMetadata, 
+    fileInputRef, 
+    isUploading, 
+    handleFileChange, 
+    removeFile 
+  } = useFileUpload();
 
-  const { chatId, setChatId, messages, input, setInput, handleInputChange, handleSubmit, setMessages, resetChat, isLoading } = useChatManager({
+  const { 
+    chatId, 
+    setChatId, 
+    messages, 
+    input, 
+    setInput, 
+    handleInputChange, 
+    handleSubmit, 
+    setMessages, 
+    resetChat, 
+    isLoading 
+  } = useChatManager({  
     userId: user?.id || null,
     fileUrl,
-    fileType,
+    fileMetadata,
   });
 
   const { isEditing, setIsEditing, handleEditMessage, handleDeleteMessage, handleSaveEdit } = useMessageActions({ messages, setMessages, chatId });
@@ -62,10 +81,11 @@ const ChatInterface = () => {
                   handleInputChange={handleInputChange}
                   handleKeyPress={handleKeyPress}
                   handleSubmit={handleSubmit}
-                  fileInputRef={fileInputRef} 
+                  fileInputRef={fileInputRef}
                   handleFileChange={handleFileChange}
                   file={file}
                   fileUrl={fileUrl}
+                  fileMetadata={fileMetadata}
                   isUploading={isUploading}
                   isLoading={isLoading}
                   isEditing={isEditing}
@@ -95,6 +115,7 @@ const ChatInterface = () => {
                   handleFileChange={handleFileChange}
                   file={file}
                   fileUrl={fileUrl}
+                  fileMetadata={fileMetadata}
                   isUploading={isUploading}
                   isLoading={isLoading}
                   isEditing={isEditing}

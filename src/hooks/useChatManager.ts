@@ -1,184 +1,129 @@
+import { useChat } from "@ai-sdk/react";
 import axios from "axios";
 import { useState } from "react";
 
-type Message = {
-  id: string;
-  role: "user" | "assistant";
-  content: string;
-  createdAt?: Date;
-};
+interface FileMetadata {
+  fileId: string;
+  fileName: string;
+  mimeType: string;
+  size: number;
+}
 
 type ChatManagerProps = {
   userId: string | null;
   fileUrl: string | null;
-  fileType: string | null;
+  fileMetadata: FileMetadata | null;
 };
 
-export function useChatManager({ userId, fileUrl, fileType }: ChatManagerProps) {
+export function useChatManager({ userId, fileUrl, fileMetadata }: ChatManagerProps) {
   const [chatId, setChatId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [input, setInput] = useState("");
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setInput(e.target.value);
-  };
+  const {
+    messages,
+    input,
+    setInput,
+    handleInputChange,
+    handleSubmit,
+    setMessages,
+    append,
+  } = useChat({
+    api: "/api/v1/chat",
+    body: {
+      userId,
+      chatId,
+      fileUrl: fileUrl || undefined,
+      fileMetadata: fileMetadata || undefined, 
+    },
+    onFinish: () => {
+      setInput("");
+      setIsLoading(false);
+    },
+  });
 
-  const addMessage = (message: Omit<Message, "id">) => {
-    const newMessage: Message = {
-      ...message,
-      id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
-      createdAt: new Date(),
+  const createFileAttachment = () => {
+    if (!fileUrl || !fileMetadata) return undefined;
+    
+    return {
+      fileId: fileMetadata.fileId,
+      fileName: fileMetadata.fileName,
+      fileUrl: fileUrl,
+      mimeType: fileMetadata.mimeType,
+      size: fileMetadata.size,
+      uploadedAt: new Date(),
     };
-    setMessages(prev => [...prev, newMessage]);
-    return newMessage;
   };
 
   const handleCustomSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!input.trim() && !fileUrl) return;
     if (!userId) return;
-    if (isLoading) return; // Prevent multiple submissions
 
-    setIsLoading(true);
     let currentChatId = chatId;
+    const fileAttachment = createFileAttachment();
 
-    try {
-      // Create chat if it doesn't exist
-      if (!currentChatId) {
+    if (!currentChatId) {
+      setIsLoading(true);
+      
+      try {
         const chatRes = await axios.post("/api/v1/chats/create", {
           title: input.trim().slice(0, 50) || "New Chat",
           userId,
         });
+        
+        if (chatRes.status === 200) {
+          const { chatId: newChatId } = chatRes.data;
+          currentChatId = newChatId;
+          setChatId(newChatId);
 
-        if (chatRes.data?.chatId) {
-          currentChatId = chatRes.data.chatId;
-          setChatId(currentChatId);
+          const userMessage = {
+            role: "user" as const,
+            content: input,
+            files: fileAttachment ? [fileAttachment] : [],
+          };
+
+          await append(userMessage, {
+            body: {
+              userId,
+              chatId: currentChatId,
+              fileUrl: fileUrl || undefined,
+              fileMetadata: fileMetadata || undefined,
+            },
+          }); 
+
+          setInput(""); 
+          return;
         } else {
-          throw new Error("Failed to create chat");
+          throw new Error('Failed to create chat');
         }
+      } catch (error) {
+        console.error('Chat creation error:', error);
+        setIsLoading(false);
       }
-
-      // Add user message to UI
-      const userMessage = addMessage({
-        role: "user",
-        content: input,
-      });
-
-      // Clear input immediately
-      const currentInput = input;
-      setInput("");
-
-      // Send message to API
-      const response = await axios.post("/api/v1/chat", {
-        messages: [...messages, userMessage],
-        userId,
-        chatId: currentChatId,
-        fileUrl: fileUrl || undefined,
-        fileType: fileType || undefined,
-      });
-
-      // Handle streaming response format
-      let assistantContent = "";
+    } else {
+      setIsLoading(true);
       
-      if (typeof response.data === 'string') {
-        // Parse streaming response format
-        const lines = response.data.split('\n');
-        for (const line of lines) {
-          if (line.trim().startsWith('0:"')) {
-            // Extract content from streaming chunks
-            const match = line.match(/0:"(.*)"/);
-            if (match) {
-              assistantContent += match[1].replace(/\\"/g, '"').replace(/\\\\/g, '\\');
-            }
-          }
-        }
-      } else if (response.data?.content) {
-        assistantContent = response.data.content;
-      } else if (response.data?.message) {
-        assistantContent = response.data.message;
-      }
+      try {
+        const userMessage = {
+          role: "user" as const,
+          content: input,
+          files: fileAttachment ? [fileAttachment] : [],
+        };    
 
-      // Add assistant response to UI
-      if (assistantContent) {
-        addMessage({
-          role: "assistant",
-          content: assistantContent,
+        await append(userMessage, {
+          body: {
+            userId,
+            chatId: currentChatId,
+            fileUrl: fileUrl || undefined,
+            fileMetadata: fileMetadata || undefined,
+          },
         });
-      } else {
-        addMessage({
-          role: "assistant",
-          content: "I received your message but couldn't process the response properly.",
-        });
-      }
 
-    } catch (error) {
-      console.error("Chat error:", error);
-      
-      // Add error message to UI
-      addMessage({
-        role: "assistant",
-        content: "Sorry, I encountered an error. Please try again.",
-      });
-      
-      // Restore input if there was an error
-      if (input === "") {
-        setInput(input);
+        setInput("");
+      } catch (error) {
+        console.error('Message send error:', error);
+        setIsLoading(false);
       }
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const append = async (message: Omit<Message, "id">, options?: { body?: any }) => {
-    if (isLoading) return;
-    
-    setIsLoading(true);
-    
-    try {
-      // Add user message
-      const userMessage = addMessage(message);
-      
-      // Send to API
-      const response = await axios.post("/api/v1/chat", {
-        messages: [...messages, userMessage],
-        ...options?.body,
-      });
-
-      // Handle streaming response format
-      let assistantContent = "";
-      
-      if (typeof response.data === 'string') {
-        // Parse streaming response format
-        const lines = response.data.split('\n');
-        for (const line of lines) {
-          if (line.trim().startsWith('0:"')) {
-            // Extract content from streaming chunks
-            const match = line.match(/0:"(.*)"/);
-            if (match) {
-              assistantContent += match[1].replace(/\\"/g, '"').replace(/\\\\/g, '\\');
-            }
-          }
-        }
-      } else if (response.data?.content) {
-        assistantContent = response.data.content;
-      }
-
-      // Add assistant response
-      if (assistantContent) {
-        addMessage({
-          role: "assistant",
-          content: assistantContent,
-        });
-      }
-    } catch (error) {
-      console.error("Append error:", error);
-      addMessage({
-        role: "assistant",
-        content: "Sorry, I encountered an error. Please try again.",
-      });
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -186,7 +131,6 @@ export function useChatManager({ userId, fileUrl, fileType }: ChatManagerProps) 
     setMessages([]);
     setInput("");
     setChatId(null);
-    setIsLoading(false);
   };
 
   return {

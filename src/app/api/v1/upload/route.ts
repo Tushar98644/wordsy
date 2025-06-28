@@ -56,7 +56,6 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      // Convert file to buffer
       const arrayBuffer = await file.arrayBuffer();
       const buffer = Buffer.from(arrayBuffer);
 
@@ -84,12 +83,13 @@ export async function POST(request: NextRequest) {
       const result = uploadResult as CloudinaryUploadResult;
 
       return NextResponse.json({
-        imgUrl: result.secure_url,
-        publicId: result.public_id,
-        fileType: file.type,
+        fileUrl: result.secure_url,
+        fileId: result.public_id,
+        mimeType: file.type,
         fileName: file.name,
-        fileSize: file.size,
-        success: true,
+        size: file.size,
+        uploadedAt: new Date(),
+        success: true, 
       });
     } catch (uploadError) {
       console.error("Upload error:", uploadError);

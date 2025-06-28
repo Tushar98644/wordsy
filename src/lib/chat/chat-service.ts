@@ -21,7 +21,7 @@ export class ChatService {
     })));
 
     const result = streamText({
-      model: gemini("gemini-2.5-flash"),
+      model: gemini("gemini-1.5-flash"),
       messages: coreMessages,
       maxTokens: 4000,
     });
