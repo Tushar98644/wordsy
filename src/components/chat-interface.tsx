@@ -108,7 +108,7 @@ const ChatInterface = () => {
 
       {/* Main content */}
       <div className="flex-1 flex flex-col min-w-0">
-        <ChatHeader />
+        <ChatHeader isCollapsed={mobileSidebarOpen} />
 
         {/* Mobile sidebar toggle button */}
         <button
