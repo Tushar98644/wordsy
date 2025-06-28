@@ -1,9 +1,9 @@
-/* eslint-disable @next/next/no-img-element */
 "use client"
 
 import { Mic } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import VoiceControlsMenu from "../input/voice-control"
+import Image from "next/image"
 
 export default function TopControls() {
     return (
@@ -18,10 +18,12 @@ export default function TopControls() {
                         active:opacity-80 disabled:opacity-40 disabled:text-gray-400
                         bg-transparent focus:outline-none"
                     >
-                        <img
+                        <Image
                             src="chrome-extension://eollffkcakegifhacjnlnegohfdlidhn/assets/svg/imgMia-logo.chunk.svg"
                             alt="mia-ai"
                             className="h-[18px] sm:h-[22px] -mt-[1px] hover:animate-pulse"
+                            width={100}
+                            height={100}
                         />
                         <div className="pl-1 sm:pl-2 text-gray-500 text-[10px] sm:text-xs hidden xs:block">
                             Talk to Mia

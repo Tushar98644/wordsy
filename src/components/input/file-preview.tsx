@@ -1,6 +1,7 @@
 import { FileText } from "lucide-react";
 import { getFileType } from "../../utils/file";
 import LoadingIndicator from './loading-indicator';
+import Image from "next/image";
 
 interface FilePreviewProps {
   fileName: string;
@@ -26,10 +27,12 @@ const FilePreview: React.FC<FilePreviewProps> = ({
   if (isImage && previewUrl) {
     return (
       <div className="relative">
-        <img 
+        <Image
           src={previewUrl} 
           alt={fileName}
           className="w-20 h-20 object-cover rounded-lg border border-gray-500"
+          width={100}
+          height={100}
         />
         {isUploading && (
           <div className="absolute inset-0 bg-black bg-opacity-50 rounded-lg flex items-center justify-center">

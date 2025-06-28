@@ -2,6 +2,7 @@ import React from 'react';
 import { ImageIcon, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { IFile } from "@/types/file";
+import Image from "next/image";
 
 interface ImageFileProps {
   file: IFile;
@@ -12,11 +13,13 @@ const ImageFile: React.FC<ImageFileProps> = ({ file }) => {
 
   return (
     <div className="bg-[#2a2a2a] p-2">
-      <img 
+      <Image
         src={file.fileUrl} 
         alt={file.fileName}
         className="w-48 h-48 object-cover rounded-md cursor-pointer hover:opacity-90 transition-opacity"
         onClick={openImage}
+        width={100}
+        height={100}
       />
       <div className="flex items-center justify-between mt-2 px-1">
         <div className="flex items-center gap-2">
