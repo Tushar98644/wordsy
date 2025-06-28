@@ -1,4 +1,4 @@
-import ChatInterface from '@/components/chat-interface';
+import ChatInterface from '@/components/chat-window/chat-interface';
 import { ChatProvider } from '@/context/chat-context';
 import React from 'react'
 

@@ -1,31 +1,17 @@
 import React from 'react';
 import { Input } from "@/components/ui/input";
-import TopControls from "@/components/chat-area/top-controls";
+import TopControls from "@/components/chat-window/top-controls";
 import EditingBanner from "@/components/input/editing-banner";
 import FileCard from "@/components/input/file-card";
 import ChatControls from "@/components/input/chat-control";
 import SubmitButton from "@/components/input/submit-button";
 import { useChatInput } from '@/hooks/useChatInput';
-import { ChatInputProps } from '@/types/input';
+import { useChatContext } from '@/context/chat-context';
+import { useUIContext } from '@/context/ui-context';
 
-const ChatInput: React.FC<ChatInputProps> = ({
-  input,
-  handleInputChange,
-  handleKeyPress,
-  handleSubmit,
-  fileInputRef,
-  handleFileChange,
-  file,
-  fileUrl,
-  fileMetadata,
-  isUploading,
-  isLoading,
-  isEditing,
-  setIsEditing,
-  handleSaveEdit,
-  removeFile,
-  setInput
-}) => {
+const ChatInput: React.FC = () => {
+  const { input, setInput, handleSubmit, removeFile, file, fileMetadata, isUploading, isLoading, isEditing, setIsEditing, handleSaveEdit, fileUrl, handleInputChange, fileInputRef, handleFileChange } = useChatContext();
+  const { handleKeyPress } = useUIContext();
   const {
     hasContent,
     getPlaceholderText,
@@ -47,12 +33,12 @@ const ChatInput: React.FC<ChatInputProps> = ({
       e.preventDefault();
       if (hasContent()) {
         setInput('');
-        
+
         const syntheticEvent = {
-          preventDefault: () => {},
+          preventDefault: () => { },
           currentTarget: e.currentTarget.form
         } as React.FormEvent<HTMLFormElement>;
-        
+
         handleSubmit(syntheticEvent);
         setTimeout(() => {
           removeFile();

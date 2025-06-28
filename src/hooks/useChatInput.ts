@@ -2,10 +2,10 @@ import { useCallback } from 'react';
 
 interface UseChatInputProps {
   input: string;
-  setInput: React.Dispatch<React.SetStateAction<string>>;
+  setInput: (input: string) => void;
   handleSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
   removeFile: () => void;
-  file: File | null;
+  file: File | null | undefined;
   fileMetadata: any;
 }
 

@@ -1,46 +1,75 @@
-"use client";
+'use client';
 
-import { createContext, useContext } from "react";
+import { createContext, useContext, ReactNode } from 'react';
+import { useUser } from "@clerk/nextjs";
 import { useFileUpload } from "@/hooks/useFileUpload";
 import { useChatManager } from "@/hooks/useChatManager";
 import { useMessageActions } from "@/hooks/useMessageActions";
-import { useUser } from "@clerk/nextjs";
 
-const ChatContext = createContext<ReturnType<typeof useChatContextValue> | null>(null);
+interface ChatContextType {
+  // File upload
+  file?: File | null;
+  fileUrl?: string | null;
+  fileMetadata?: any;
+  fileInputRef: React.RefObject<HTMLInputElement | null>;
+  isUploading: boolean;
+  handleFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  removeFile: () => void;
+  
+  // Chat management
+  chatId: string | null;
+  setChatId: (chatId: string | null) => void;
+  messages: any[];
+  input: string;
+  setInput: (input: string) => void;
+  handleInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  handleSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
+  setMessages: (messages: any[]) => void;
+  resetChat: () => void;
+  isLoading: boolean;
+  
+  // Message actions
+  isEditing: any;
+  setIsEditing: (editing: any) => void;
+  handleEditMessage: (id: string, content: string) => void;
+  handleDeleteMessage: (id: string) => void;
+  handleSaveEdit: (e: React.FormEvent) => Promise<void>;
+  
+  // User
+  user: any;
+}
 
-function useChatContextValue() {
+const ChatContext = createContext<ChatContextType | undefined>(undefined);
+
+export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const { user } = useUser();
 
   const fileUpload = useFileUpload();
-
-  const chat = useChatManager({
+  const chatManager = useChatManager({
     userId: user?.id || null,
     fileUrl: fileUpload.fileUrl,
     fileMetadata: fileUpload.fileMetadata,
   });
-
-  const messageActions = useMessageActions({
-    messages: chat.messages,
-    setMessages: chat.setMessages,
-    chatId: chat.chatId,
+  const messageActions = useMessageActions({ 
+    messages: chatManager.messages, 
+    setMessages: chatManager.setMessages, 
+    chatId: chatManager.chatId 
   });
 
-  return {
+  const value: ChatContextType = {
     ...fileUpload,
-    ...chat,
+    ...chatManager,
     ...messageActions,
+    user,
   };
-}
 
-export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
-  const value = useChatContextValue();
   return <ChatContext.Provider value={value}>{children}</ChatContext.Provider>;
 };
 
 export const useChatContext = () => {
-  const ctx = useContext(ChatContext);
-  if (!ctx) {
-    throw new Error("useChatContext must be used inside a <ChatProvider>");
+  const context = useContext(ChatContext);
+  if (context === undefined) {
+    throw new Error('useChatContext must be used within a ChatProvider');
   }
-  return ctx;
+  return context;
 };

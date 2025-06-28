@@ -1,6 +1,6 @@
 "use client"
 
-import ChatInterface from "@/components/chat-interface"
+import ChatInterface from "@/components/chat-window/chat-interface"
 import { useUser } from "@clerk/nextjs";
 import { WelcomeModal } from "@/components/welcome-modal";
 

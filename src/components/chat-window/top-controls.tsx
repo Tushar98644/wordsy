@@ -3,7 +3,7 @@
 
 import { Mic } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import VoiceControlsMenu from "./voice-control"
+import VoiceControlsMenu from "../input/voice-control"
 
 export default function TopControls() {
     return (
