@@ -7,6 +7,7 @@ export type SidebarProps = {
     resetChat: () => void;
     setMessages: (messages: any[]) => void;
     setChatId: (chatId: string) => void;
+    isCollapsed: boolean;
 };
 
 export type ChatItemProps = {

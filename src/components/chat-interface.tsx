@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useState } from "react";
 import { Sidebar } from "./sidebar/sidebar";
 import ChatHeader from "./chat-area/header";
 import ChatInput from "./chat-area/chat-input";
@@ -9,46 +9,64 @@ import { useUser } from "@clerk/nextjs";
 import { useFileUpload } from "@/hooks/useFileUpload";
 import { useChatManager } from "@/hooks/useChatManager";
 import { useMessageActions } from "@/hooks/useMessageActions";
+import { Menu } from "lucide-react";
 
 const ChatInterface = () => {
   const { user } = useUser();
-  const { 
-    file, 
-    fileUrl, 
-    fileMetadata, 
-    fileInputRef, 
-    isUploading, 
-    handleFileChange, 
-    removeFile 
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+
+  const {
+    file,
+    fileUrl,
+    fileMetadata,
+    fileInputRef,
+    isUploading,
+    handleFileChange,
+    removeFile,
   } = useFileUpload();
 
-  const { 
-    chatId, 
-    setChatId, 
-    messages, 
-    input, 
-    setInput, 
-    handleInputChange, 
-    handleSubmit, 
-    setMessages, 
-    resetChat, 
-    isLoading 
-  } = useChatManager({  
+  const {
+    chatId,
+    setChatId,
+    messages,
+    input,
+    setInput,
+    handleInputChange,
+    handleSubmit,
+    setMessages,
+    resetChat,
+    isLoading,
+  } = useChatManager({
     userId: user?.id || null,
     fileUrl,
     fileMetadata,
   });
 
-  const { isEditing, setIsEditing, handleEditMessage, handleDeleteMessage, handleSaveEdit } = useMessageActions({ messages, setMessages, chatId });
-  
+  const {
+    isEditing,
+    setIsEditing,
+    handleEditMessage,
+    handleDeleteMessage,
+    handleSaveEdit,
+  } = useMessageActions({ messages, setMessages, chatId });
+
+  const prevChatIdRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (chatId && chatId !== prevChatIdRef.current && mobileSidebarOpen) {
+      setMobileSidebarOpen(false);
+    }
+    prevChatIdRef.current = chatId;
+  }, [chatId, mobileSidebarOpen]);
+
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      
+
       if (input.trim() || file || fileMetadata) {
-        const form = e.currentTarget.closest('form');
+        const form = e.currentTarget.closest("form");
         if (form) {
-          handleSubmit({ preventDefault: () => {}, currentTarget: form } as React.FormEvent<HTMLFormElement>);
+          handleSubmit({ preventDefault: () => { }, currentTarget: form } as React.FormEvent<HTMLFormElement>);
           setTimeout(() => {
             removeFile();
           }, 100);
@@ -63,22 +81,48 @@ const ChatInterface = () => {
   }, [messages]);
 
   return (
-    <div className="flex h-screen bg-[#212121] text-white">
-      <Sidebar
-        resetChat={resetChat}
-        setMessages={setMessages}
-        setChatId={setChatId}
-      />
+    <div className="flex h-screen bg-[#212121] text-white overflow-hidden">
+      {/* Mobile Sidebar Overlay */}
+      {mobileSidebarOpen && (
+        <div
+          className="fixed inset-0 bg-transparent z-40 lg:hidden"
+          onClick={() => setMobileSidebarOpen(false)}
+        />
+      )}
+
+
+      {/* Sidebar - Mobile & Desktop */}
+      <div
+        className={`
+    fixed top-0 left-0 h-full w-[260px] z-50 transform transition-transform duration-300 bg-[#171717]
+    ${mobileSidebarOpen ? "translate-x-0" : "-translate-x-full"} lg:relative lg:translate-x-0
+  `}
+      >
+        <Sidebar
+          resetChat={resetChat}
+          setMessages={setMessages}
+          setChatId={setChatId}
+          isCollapsed={false} // always expanded on desktop
+        />
+      </div>
 
       {/* Main content */}
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col min-w-0">
         <ChatHeader />
+
+        {/* Mobile sidebar toggle button */}
+        <button
+          className="fixed top-3 left-3 z-30 p-2 rounded-md bg-[#171717] lg:hidden"
+          onClick={() => setMobileSidebarOpen(true)}
+        >
+          <Menu className="text-white text-xl" />
+        </button>
 
         {/* Chat area */}
         <div className="flex-1 flex flex-col overflow-hidden">
           {messages.length === 0 ? (
             <div className="flex flex-1 flex-col items-center justify-center px-4">
-              <h1 className="text-[40px] font-normal text-center mb-12 text-white leading-tight">
+              <h1 className="text-2xl md:text-4xl font-normal text-center mb-8 md:mb-12 text-white leading-tight">
                 Where should we begin?
               </h1>
               <div className="w-full max-w-4xl">
