@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useEffect } from "react";
-import Sidebar from "./sidebar/sidebar";
+import { Sidebar } from "./sidebar/sidebar";
 import ChatHeader from "./chat-area/header";
 import ChatInput from "./chat-area/chat-input";
 import MessageContainer from "./chat-area/message-container";
