@@ -16,19 +16,17 @@ const ChatHeader = ({ isCollapsed }: { isCollapsed: boolean }) => {
 
     return (
         <div className="flex items-center justify-between px-5 py-2 border-b border-[#2f2f2f] relative">
-            {/* Dropdown Section */}
-            <div
-                className={`${
-                    !isCollapsed
-                        ? "absolute left-1/2 -translate-x-1/2"
-                        : "relative"
-                } flex items-center gap-2 cursor-pointer`}
-                onClick={() => setOpenDropdown(prev => !prev)}
-            >
-                <span className="font-medium text-lg">ChatGPT</span>
-                <ChevronDown className="w-4 h-4 text-gray-400" />
+            {/* Placeholder left section to preserve spacing */}
+            <div className={!isCollapsed ? "invisible" : "flex items-center gap-4 relative"}>
+                <div
+                    className="flex items-center gap-2 cursor-pointer"
+                    onClick={() => setOpenDropdown(prev => !prev)}
+                >
+                    <span className="font-medium text-lg">ChatGPT</span>
+                    <ChevronDown className="w-4 h-4 text-gray-400" />
+                </div>
 
-                {openDropdown && (
+                {openDropdown && !isCollapsed && (
                     <div className="absolute top-full mt-2 w-48 rounded-md border border-[#3f3f3f] bg-[#1e1e1e] shadow-lg z-50">
                         <div className="px-4 py-2 flex items-center justify-between text-sm hover:bg-[#2a2a2a] cursor-default">
                             ChatGPT
@@ -41,7 +39,30 @@ const ChatHeader = ({ isCollapsed }: { isCollapsed: boolean }) => {
                 )}
             </div>
 
-            {/* Memory Info - Hide when collapsed */}
+            {/* Centered Dropdown when collapsed */}
+            {!isCollapsed && (
+                <div
+                    className="absolute left-1/2 -translate-x-1/2 flex items-center gap-2 cursor-pointer"
+                    onClick={() => setOpenDropdown(prev => !prev)}
+                >
+                    <span className="font-medium text-lg">ChatGPT</span>
+                    <ChevronDown className="w-4 h-4 text-gray-400" />
+
+                    {openDropdown && (
+                        <div className="absolute top-full mt-2 w-48 rounded-md border border-[#3f3f3f] bg-[#1e1e1e] shadow-lg z-50">
+                            <div className="px-4 py-2 flex items-center justify-between text-sm hover:bg-[#2a2a2a] cursor-default">
+                                ChatGPT
+                                <Check className="w-4 h-4 text-green-500" />
+                            </div>
+                            <div className="px-4 py-2 text-sm hover:bg-[#2a2a2a] cursor-pointer">
+                                ChatGPT Plus
+                            </div>
+                        </div>
+                    )}
+                </div>
+            )}
+
+            {/* Center section (memory info) hidden when collapsed */}
             {isCollapsed && (
                 <div className="flex items-center gap-1 text-sm text-gray-400 relative group">
                     <span>Saved memory full</span>
@@ -54,7 +75,7 @@ const ChatHeader = ({ isCollapsed }: { isCollapsed: boolean }) => {
                 </div>
             )}
 
-            {/* Right Controls - Only UserButton if collapsed */}
+            {/* Right section */}
             <div className="flex items-center gap-2">
                 {isCollapsed && (
                     <>
@@ -84,9 +105,10 @@ const ChatHeader = ({ isCollapsed }: { isCollapsed: boolean }) => {
                     </>
                 )}
 
+                {/* Always show UserButton */}
                 {isSignedIn ? (
-                    <div className='pl-3'>
-                            <UserButton />
+                    <div className="pl-3">
+                        <UserButton />
                     </div>
                 ) : (
                     <div className="w-8 h-8 bg-gray-600 rounded-full flex items-center justify-center text-sm font-medium">

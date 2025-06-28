@@ -91,7 +91,6 @@ const ChatInterface = () => {
       )}
 
 
-      {/* Sidebar - Mobile & Desktop */}
       <div
         className={`
     fixed top-0 left-0 h-full w-[260px] z-50 transform transition-transform duration-300 bg-[#171717]
@@ -102,7 +101,7 @@ const ChatInterface = () => {
           resetChat={resetChat}
           setMessages={setMessages}
           setChatId={setChatId}
-          isCollapsed={false} // always expanded on desktop
+          isCollapsed={false} 
         />
       </div>
 
@@ -112,7 +111,7 @@ const ChatInterface = () => {
 
         {/* Mobile sidebar toggle button */}
         <button
-          className="fixed top-3 left-3 z-30 p-2 rounded-md bg-[#171717] lg:hidden"
+          className="fixed top-2 left-3 z-30 p-2 rounded-md bg-[#171717] lg:hidden"
           onClick={() => setMobileSidebarOpen(true)}
         >
           <Menu className="text-white text-xl" />
