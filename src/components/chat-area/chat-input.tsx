@@ -26,6 +26,7 @@ interface ChatInputProps {
     setIsEditing: React.Dispatch<React.SetStateAction<{ id: string; content: string } | null>>;
     handleSaveEdit: (e: React.FormEvent) => void;
     removeFile: () => void;
+    setInput: React.Dispatch<React.SetStateAction<string>>; // Add this prop
 }
 
 const ChatInput = ({
@@ -43,7 +44,8 @@ const ChatInput = ({
     isEditing,
     setIsEditing,
     handleSaveEdit,
-    removeFile
+    removeFile,
+    setInput // Add this prop
 }: ChatInputProps) => {
     const isDisabled = isUploading || isLoading;
 
@@ -65,10 +67,36 @@ const ChatInput = ({
         e.preventDefault();
 
         if (input.trim() || file || fileMetadata) {
+            // Clear the input immediately when submitting
+            setInput('');
+            
             handleSubmit(e);
             setTimeout(() => {
                 removeFile();
             }, 100);
+        }
+    };
+
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            if (input.trim() || file || fileMetadata) {
+                // Clear the input immediately when pressing Enter
+                setInput('');
+                
+                // Create a synthetic form event
+                const syntheticEvent = {
+                    preventDefault: () => {},
+                    currentTarget: e.currentTarget.form
+                } as React.FormEvent<HTMLFormElement>;
+                
+                handleSubmit(syntheticEvent);
+                setTimeout(() => {
+                    removeFile();
+                }, 100);
+            }
+        } else {
+            handleKeyPress(e);
         }
     };
 
@@ -80,6 +108,13 @@ const ChatInput = ({
     const isImage = displayMimeType.startsWith('image/');
     const isPDF = displayMimeType.includes('pdf');
     const isDocument = displayMimeType.includes('document') || displayMimeType.includes('text');
+
+    // Determine placeholder text based on loading state
+    const getPlaceholderText = () => {
+        if (isLoading) return "Please wait while the response is being generated...";
+        if (isUploading) return "Uploading file...";
+        return "Ask anything";
+    };
 
     return (
         <div className="w-full max-w-4xl mx-auto px-4 pb-8">
@@ -188,13 +223,13 @@ const ChatInput = ({
                         <Input
                             value={input}
                             onChange={handleInputChange}
-                            onKeyDown={handleKeyPress}
-                            placeholder={isLoading ? "Please wait for response..." : "Ask anything"}
+                            onKeyDown={handleKeyDown}
+                            placeholder={getPlaceholderText()}
                             disabled={isDisabled}
                             className="bg-transparent border-none text-white placeholder-gray-500 text-[18px] px-6 py-6 focus:ring-0 focus:outline-none rounded-[32px] resize-none"
                         />
 
-                        {(input.trim() || file || fileMetadata) && (
+                        {(input.trim() || file || fileMetadata) && !isLoading && (
                             <Button
                                 type="submit"
                                 disabled={isDisabled}
@@ -210,6 +245,16 @@ const ChatInput = ({
                                     <span className="text-lg">→</span>
                                 )}
                             </Button>
+                        )}
+
+                        {isLoading && (
+                            <div className="absolute right-5 bottom-5 bg-gray-500 text-black rounded-full w-8 h-8 p-0 flex items-center justify-center">
+                                <div className="flex space-x-1">
+                                    <div className="w-1.5 h-1.5 bg-white rounded-full animate-bounce" />
+                                    <div className="w-1.5 h-1.5 bg-white rounded-full animate-bounce delay-75" />
+                                    <div className="w-1.5 h-1.5 bg-white rounded-full animate-bounce delay-150" />
+                                </div>
+                            </div>
                         )}
                     </div>
                 </form>

@@ -84,6 +84,7 @@ const ChatInterface = () => {
               <div className="w-full max-w-4xl">
                 <ChatInput
                   input={input}
+                  setInput={setInput}
                   handleInputChange={handleInputChange}
                   handleKeyPress={handleKeyPress}
                   handleSubmit={handleSubmit}
@@ -114,6 +115,7 @@ const ChatInterface = () => {
               <div className="flex-shrink-0 w-full max-w-4xl mx-auto p-4">
                 <ChatInput
                   input={input}
+                  setInput={setInput}
                   handleInputChange={handleInputChange}
                   handleKeyPress={handleKeyPress}
                   handleSubmit={handleSubmit}
