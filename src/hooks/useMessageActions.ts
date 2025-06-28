@@ -1,3 +1,4 @@
+import axios from "axios";
 import { useState } from "react";
 
 export function useMessageActions({
@@ -31,10 +32,10 @@ export function useMessageActions({
 
     if (chatId) {
       try {
-        await fetch(`/api/v1/chats/messages/${isEditing.id}`, {
-          method: "PATCH",
+        await axios.patch(`/api/v1/chats/messages/${isEditing.id}`, {
+          content: isEditing.content,
+        }, {
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ content: isEditing.content }),
         });
       } catch (error) {
         console.error("Failed to update message:", error);

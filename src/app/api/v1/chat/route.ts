@@ -165,10 +165,7 @@ export async function POST(req: Request) {
 
       if (userContent) {
         try {
-          await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/v1/memory`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
+          await axios.post(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/v1/memory`, {
               action: 'store',
               userId,
               content: userContent,
@@ -177,8 +174,9 @@ export async function POST(req: Request) {
                 type: 'conversation',
                 ...(fileAttachment && { hasFile: true, fileName: fileAttachment.fileName })
               }
-            }),
-          });
+            }, {
+              headers: { 'Content-Type': 'application/json' }
+            });
         } catch (err) {
           console.error("[MEMORY] Error storing user message:", err);
         }
@@ -186,16 +184,14 @@ export async function POST(req: Request) {
 
       if (responseText && responseText.length > 30) {
         try {
-          const assistantMemoryRes = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/v1/memory`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
+          const assistantMemoryRes = await axios.post(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/v1/memory`, {
               action: 'store',
               userId,
               content: responseText,
               metadata: { role: 'assistant', type: 'conversation' },
-            }),
-          });
+            }, {
+              headers: { 'Content-Type': 'application/json' }
+            }); 
           console.log("[MEMORY] Stored assistant message:", assistantMemoryRes.status);
         } catch (err) {
           console.error("[MEMORY] Error storing assistant message:", err);

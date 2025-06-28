@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react';
 import { nanoid } from 'nanoid';
 import { FileMetadata } from '@/types/file';
+import axios from 'axios';
 
 export const useFileUpload = () => {
   const [file, setFile] = useState<File | null>(null);
@@ -22,16 +23,13 @@ export const useFileUpload = () => {
       const formData = new FormData();
       formData.append('file', selectedFile);
 
-      const uploadResponse = await fetch('/api/v1/upload', {
-        method: 'POST',
-        body: formData,
-      });
+      const uploadResponse = await axios.post('/api/v1/upload', formData);
 
-      if (!uploadResponse.ok) {
+      if (uploadResponse.status !== 200) {
         throw new Error('Upload failed');
       }
       
-      const uploadResult = await uploadResponse.json();
+      const uploadResult = uploadResponse.data;
       
       const fileId = uploadResult.fileId || nanoid();
       
