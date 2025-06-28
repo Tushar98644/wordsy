@@ -44,9 +44,15 @@ const ChatInterface = () => {
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      const form = e.currentTarget.closest('form');
-      if (form) {
-        handleSubmit({ preventDefault: () => {}, currentTarget: form } as React.FormEvent<HTMLFormElement>);
+      
+      if (input.trim() || file || fileMetadata) {
+        const form = e.currentTarget.closest('form');
+        if (form) {
+          handleSubmit({ preventDefault: () => {}, currentTarget: form } as React.FormEvent<HTMLFormElement>);
+          setTimeout(() => {
+            removeFile();
+          }, 100);
+        }
       }
     }
   };

@@ -61,6 +61,17 @@ const ChatInput = ({
         return null;
     };
 
+    const handleFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+
+        if (input.trim() || file || fileMetadata) {
+            handleSubmit(e);
+            setTimeout(() => {
+                removeFile();
+            }, 100);
+        }
+    };
+
     const displayFilename = fileMetadata?.fileName || file?.name || 'Uploaded file';
     const displayMimeType = fileMetadata?.mimeType || file?.type || '';
     const displaySize = fileMetadata?.size || file?.size;
@@ -84,7 +95,6 @@ const ChatInput = ({
                 </div>
             )}
 
-            {/* Enhanced File Preview */}
             {(file || fileUrl || fileMetadata) && (
                 <div className="mb-4 p-4 bg-[#2f2f2f] rounded-xl border border-gray-600">
                     <div className="flex gap-4">
@@ -173,7 +183,7 @@ const ChatInput = ({
             )}
 
             <div className="bg-[#2f2f2f] rounded-[30px] p-4">
-                <form onSubmit={handleSubmit}>
+                <form onSubmit={handleFormSubmit}>
                     <div className="relative">
                         <Input
                             value={input}
@@ -246,4 +256,4 @@ const ChatInput = ({
     );
 };
 
-export default ChatInput;   
+export default ChatInput;
