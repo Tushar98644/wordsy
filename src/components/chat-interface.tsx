@@ -107,14 +107,14 @@ const ChatInterface = () => {
 
       {/* Main content */}
       <div className="flex-1 flex flex-col min-w-0">
-        <ChatHeader isCollapsed={mobileSidebarOpen} />
+        <ChatHeader isOpen={mobileSidebarOpen} />
 
         {/* Mobile sidebar toggle button */}
         <button
-          className="fixed top-2 left-3 z-30 p-2 rounded-md bg-[#171717] lg:hidden"
+          className="fixed top-2 left-3 z-30 p-2 border border-white/10 rounded-md bg-transparent lg:hidden"
           onClick={() => setMobileSidebarOpen(true)}
         >
-          <Menu className="text-white text-xl" />
+          <Menu className="size-4 bg-transparent text-white text-xl" />
         </button>
 
         {/* Chat area */}

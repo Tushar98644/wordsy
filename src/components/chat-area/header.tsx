@@ -10,23 +10,28 @@ import { Button } from "@/components/ui/button";
 import { useUser, SignInButton, UserButton } from "@clerk/clerk-react";
 import { useState } from "react";
 
-const ChatHeader = ({ isCollapsed }: { isCollapsed: boolean }) => {
+const ChatHeader = ({ isOpen }: { isOpen: boolean }) => {
     const { isSignedIn } = useUser();
     const [openDropdown, setOpenDropdown] = useState(false);
 
     return (
         <div className="flex items-center justify-between px-5 py-2 border-b border-[#2f2f2f] relative">
-            {/* Placeholder left section to preserve spacing */}
-            <div className={!isCollapsed ? "invisible" : "flex items-center gap-4 relative"}>
+            {/* Left Section: Visible on sm+ OR invisible on mobile when collapsed */}
+            <div
+                className={`items-center gap-4 relative ${
+                    isOpen ? "invisible sm:visible" : "flex"
+                }`}
+            >
                 <div
-                    className="flex items-center gap-2 cursor-pointer"
+                    className="hidden lg:flex items-center gap-2 cursor-pointer"
                     onClick={() => setOpenDropdown(prev => !prev)}
                 >
                     <span className="font-medium text-lg">ChatGPT</span>
                     <ChevronDown className="w-4 h-4 text-gray-400" />
                 </div>
 
-                {openDropdown && !isCollapsed && (
+                {/* Dropdown shown only if open AND not collapsed on mobile */}
+                {openDropdown && (!isOpen || typeof window !== 'undefined' && window.innerWidth >= 640) && (
                     <div className="absolute top-full mt-2 w-48 rounded-md border border-[#3f3f3f] bg-[#1e1e1e] shadow-lg z-50">
                         <div className="px-4 py-2 flex items-center justify-between text-sm hover:bg-[#2a2a2a] cursor-default">
                             ChatGPT
@@ -39,32 +44,20 @@ const ChatHeader = ({ isCollapsed }: { isCollapsed: boolean }) => {
                 )}
             </div>
 
-            {/* Centered Dropdown when collapsed */}
-            {!isCollapsed && (
+            {/* Centered Dropdown: ONLY shown on mobile when collapsed */}
+            {!isOpen && (
                 <div
-                    className="absolute left-1/2 -translate-x-1/2 flex items-center gap-2 cursor-pointer"
+                    className="sm:hidden absolute left-1/2 -translate-x-1/2 flex items-center gap-2 cursor-pointer"
                     onClick={() => setOpenDropdown(prev => !prev)}
                 >
                     <span className="font-medium text-lg">ChatGPT</span>
                     <ChevronDown className="w-4 h-4 text-gray-400" />
-
-                    {openDropdown && (
-                        <div className="absolute top-full mt-2 w-48 rounded-md border border-[#3f3f3f] bg-[#1e1e1e] shadow-lg z-50">
-                            <div className="px-4 py-2 flex items-center justify-between text-sm hover:bg-[#2a2a2a] cursor-default">
-                                ChatGPT
-                                <Check className="w-4 h-4 text-green-500" />
-                            </div>
-                            <div className="px-4 py-2 text-sm hover:bg-[#2a2a2a] cursor-pointer">
-                                ChatGPT Plus
-                            </div>
-                        </div>
-                    )}
                 </div>
             )}
 
-            {/* Center section (memory info) hidden when collapsed */}
-            {isCollapsed && (
-                <div className="flex items-center gap-1 text-sm text-gray-400 relative group">
+            {/* Center Section: Memory info, hidden on mobile when collapsed */}
+            {!isOpen && (
+                <div className="hidden sm:flex items-center gap-1 text-sm text-gray-400 relative group">
                     <span>Saved memory full</span>
                     <div className="relative">
                         <Info className="w-4 h-4 cursor-pointer" />
@@ -75,10 +68,10 @@ const ChatHeader = ({ isCollapsed }: { isCollapsed: boolean }) => {
                 </div>
             )}
 
-            {/* Right section */}
-            <div className="flex items-center gap-2">
-                {isCollapsed && (
-                    <>
+            {/* Right Section */}
+            <div className="flex items-center gap-2 ">
+                {/* Hide share buttons on collapsed mobile */}
+                    <div className="hidden md:flex">
                         {isSignedIn ? (
                             <Button
                                 variant="default"
@@ -102,8 +95,7 @@ const ChatHeader = ({ isCollapsed }: { isCollapsed: boolean }) => {
                         >
                             <Ellipsis className="w-4 h-4" />
                         </Button>
-                    </>
-                )}
+                    </div>
 
                 {/* Always show UserButton */}
                 {isSignedIn ? (
