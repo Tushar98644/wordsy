@@ -41,88 +41,63 @@ const MessageContainer = ({ messages, handleEditMessage, handleDeleteMessage, me
           return (
             <div key={message.id} className={`flex ${isUser ? 'justify-end' : 'justify-start'}`}>  
               <div className="max-w-[80%] flex flex-col items-end">
-                <div
-                  className={`px-6 py-4 text-base whitespace-pre-wrap break-words ` +
-                    (isUser
-                      ? 'bg-[#2f2f2f] text-white rounded-[30px] shadow-md'
-                      : 'bg-none text-gray-100 rounded-[30px] rounded-bl-md')
-                  }
-                >
-                  {/* Text Content */}
-                  {message.content && (
-                    <div className="text-white mb-3">
-                      {message.content}
-                    </div>
-                  )}
-                  
-                  {/* Files */}
-                  {message.files && message.files.length > 0 && (
-                    <div className="space-y-3">
-                      {message.files.map((file, idx) => {
-                        const isImage = file.mimeType?.startsWith('image/');
-                        const isPDF = file.mimeType?.includes('pdf');
-                        const isDocument = file.mimeType?.includes('document') || file.mimeType?.includes('text');
-                        
-                        return (
-                          <div key={idx} className="bg-[#3a3a3a] rounded-xl p-4 border border-gray-600">
-                            {isImage ? (
-                              // Enhanced Image Display
-                              <div className="space-y-3">
-                                <div className="flex items-center gap-3">
-                                  <div className="w-10 h-10 bg-green-600 rounded-lg flex items-center justify-center">
-                                    <ImageIcon className="w-5 h-5 text-white" />
-                                  </div>
-                                  <div className="flex-1 min-w-0">
-                                    <p className="text-white font-medium truncate">{file.fileName}</p>
-                                    <div className="flex items-center gap-2 mt-1">
-                                      <span className="text-xs text-gray-400">
-                                        {formatFileSize(file.size)}
-                                      </span>
-                                      <span className="text-xs text-gray-500">Image</span>
-                                    </div>
-                                  </div>
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="text-gray-400 hover:text-white"
-                                    onClick={() => window.open(file.fileUrl, '_blank')}
-                                  >
-                                    <ExternalLink className="w-4 h-4" />
-                                  </Button>
+                {/* Files displayed first (above message) */}
+                {message.files && message.files.length > 0 && (
+                  <div className="mb-3 space-y-2 w-full">
+                    {message.files.map((file, idx) => {
+                      const isImage = file.mimeType?.startsWith('image/');
+                      const isPDF = file.mimeType?.includes('pdf');
+                      const isDocument = file.mimeType?.includes('document') || file.mimeType?.includes('text');
+                      
+                      return (
+                        <div key={idx} className={`rounded-lg overflow-hidden border ${isUser ? 'border-gray-600' : 'border-gray-700'}`}>
+                          {isImage ? (
+                            // ChatGPT-style Image Display - smaller and cleaner
+                            <div className="bg-[#2a2a2a] p-2">
+                              <img 
+                                src={file.fileUrl} 
+                                alt={file.fileName}
+                                className="w-48 h-48 object-cover rounded-md cursor-pointer hover:opacity-90 transition-opacity"
+                                onClick={() => window.open(file.fileUrl, '_blank')}
+                              />
+                              <div className="flex items-center justify-between mt-2 px-1">
+                                <div className="flex items-center gap-2">
+                                  <ImageIcon className="w-3 h-3 text-gray-400" />
+                                  <span className="text-xs text-gray-400 truncate max-w-32">
+                                    {file.fileName}
+                                  </span>
                                 </div>
-                                <img 
-                                  src={file.fileUrl} 
-                                  alt={file.fileName}
-                                  className="w-full max-w-md rounded-lg border border-gray-500 cursor-pointer hover:border-gray-400 transition-colors"
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="w-6 h-6 text-gray-400 hover:text-white"
                                   onClick={() => window.open(file.fileUrl, '_blank')}
-                                />
+                                >
+                                  <ExternalLink className="w-3 h-3" />
+                                </Button>
                               </div>
-                            ) : (
-                              // Enhanced Document Display
+                            </div>
+                          ) : (
+                            // ChatGPT-style Document Display - compact
+                            <div className="bg-[#2a2a2a] p-3">
                               <div className="flex items-center gap-3">
-                                <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${
+                                <div className={`w-8 h-8 rounded-md flex items-center justify-center ${
                                   isPDF ? 'bg-red-600' : 
                                   isDocument ? 'bg-blue-600' : 'bg-gray-600'
                                 }`}>
-                                  <FileText className="w-6 h-6 text-white" />
+                                  <FileText className="w-4 h-4 text-white" />
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                  <p className="text-white font-medium truncate">{file.fileName}</p>
-                                  <div className="flex items-center gap-2 mt-1">
-                                    <span className="text-xs text-gray-400">
-                                      {formatFileSize(file.size)}
-                                    </span>
-                                    <span className="text-xs text-gray-500">
-                                      {isPDF ? 'PDF Document' : 
-                                       isDocument ? 'Document' : 'File'}
-                                    </span>
-                                  </div>
+                                  <p className="text-white text-sm font-medium truncate">{file.fileName}</p>
+                                  <span className="text-xs text-gray-400">
+                                    {formatFileSize(file.size)}
+                                  </span>
                                 </div>
-                                <div className="flex gap-2">
+                                <div className="flex gap-1">
                                   <Button
                                     variant="ghost"
                                     size="icon"
-                                    className="text-gray-400 hover:text-white"
+                                    className="w-6 h-6 text-gray-400 hover:text-white"
                                     onClick={() => {
                                       const link = document.createElement('a');
                                       link.href = file.fileUrl;
@@ -130,25 +105,42 @@ const MessageContainer = ({ messages, handleEditMessage, handleDeleteMessage, me
                                       link.click();
                                     }}
                                   >
-                                    <Download className="w-4 h-4" />
+                                    <Download className="w-3 h-3" />
                                   </Button>
                                   <Button
                                     variant="ghost"
                                     size="icon"
-                                    className="text-gray-400 hover:text-white"
+                                    className="w-6 h-6 text-gray-400 hover:text-white"
                                     onClick={() => window.open(file.fileUrl, '_blank')}
                                   >
-                                    <ExternalLink className="w-4 h-4" />
+                                    <ExternalLink className="w-3 h-3" />
                                   </Button>
                                 </div>
                               </div>
-                            )}
-                          </div>
-                        );
-                      })}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {/* Message content displayed after files */}
+                {message.content && (
+                  <div
+                    className={`px-6 py-4 text-base whitespace-pre-wrap break-words ` +
+                      (isUser
+                        ? 'bg-[#2f2f2f] text-white rounded-[30px] shadow-md'
+                        : 'bg-none text-gray-100 rounded-[30px] rounded-bl-md')
+                    }
+                  >
+                    <div className="text-white">
+                      {message.content}
                     </div>
-                  )}
-                </div>
+                  </div>
+                )}
+
+                {/* User message actions */}
                 {isUser && (
                   <div className="flex gap-1 mt-2 opacity-0 hover:opacity-100 transition-opacity">
                     <Button size="icon" variant="ghost" className="text-white/60 hover:text-white hover:bg-white/10" onClick={() => {
