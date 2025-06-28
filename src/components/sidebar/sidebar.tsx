@@ -4,7 +4,7 @@ import { useUser } from "@clerk/nextjs";
 import BottomSection from "./bottom-section";
 import TopSection from "./top-section";
 
-import { SidebarProps } from "@/app/types";
+import { SidebarProps } from "@/types";
 import { useChats } from "@/hooks";
 import { chatApi } from "@/utils/chatApi";
 import { QuickActions } from "./quick-actions";
@@ -47,7 +47,7 @@ export const Sidebar = ({ resetChat, setMessages, setChatId }: SidebarProps) => 
         try {
             await chatApi.deleteChat(chatId);
             removeChat(chatId);
-            
+
             if (selectedChatId === chatId) {
                 handleNewChat();
             }
@@ -62,11 +62,11 @@ export const Sidebar = ({ resetChat, setMessages, setChatId }: SidebarProps) => 
 
             <div className="flex-1 py-2 p-1 overflow-y-auto">
                 <QuickActions />
-                
+
                 <h3 className="text-sm font-medium text-gray-300 mb-2 px-3 tracking-wider">
                     Chats
                 </h3>
-                
+
                 <ChatList
                     chats={chats}
                     selectedChatId={selectedChatId}

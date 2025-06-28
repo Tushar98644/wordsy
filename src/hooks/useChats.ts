@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Chat } from "@/app/types";
+import { Chat } from "@/types";
 import { chatApi } from "@/utils/chatApi";
 
 export const useChats = (userId?: string) => {
@@ -9,7 +9,7 @@ export const useChats = (userId?: string) => {
 
     const fetchChats = async () => {
         if (!userId) return;
-        
+
         try {
             setLoading(true);
             setError(null);
@@ -27,7 +27,7 @@ export const useChats = (userId?: string) => {
     };
 
     const updateChat = (chatId: string, updates: Partial<Chat>) => {
-        setChats(prev => prev.map(chat => 
+        setChats(prev => prev.map(chat =>
             chat._id === chatId ? { ...chat, ...updates } : chat
         ));
     };
@@ -40,13 +40,13 @@ export const useChats = (userId?: string) => {
         fetchChats();
     }, [userId]);
 
-    return { 
-        chats, 
-        loading, 
-        error, 
-        addChat, 
-        updateChat, 
-        removeChat, 
-        refetch: fetchChats 
+    return {
+        chats,
+        loading,
+        error,
+        addChat,
+        updateChat,
+        removeChat,
+        refetch: fetchChats
     };
 };

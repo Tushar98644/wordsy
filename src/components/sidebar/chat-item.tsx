@@ -1,12 +1,12 @@
 import { useState } from "react";
-import { ChatItemProps } from "@/app/types";
+import { ChatItemProps } from "@/types";
 
-export const ChatItem = ({ 
-    chat, 
-    isSelected, 
-    onSelect, 
-    onRename, 
-    onDelete 
+export const ChatItem = ({
+    chat,
+    isSelected,
+    onSelect,
+    onRename,
+    onDelete
 }: ChatItemProps) => {
     const [isRenaming, setIsRenaming] = useState(false);
     const [renameValue, setRenameValue] = useState(chat.title);
@@ -62,9 +62,9 @@ export const ChatItem = ({
                     className="opacity-0 group-hover:opacity-100 p-1 hover:bg-[#404040] rounded transition-opacity flex-shrink-0"
                 >
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" className="text-gray-400">
-                        <circle cx="12" cy="5" r="2" fill="currentColor"/>
-                        <circle cx="12" cy="12" r="2" fill="currentColor"/>
-                        <circle cx="12" cy="19" r="2" fill="currentColor"/>
+                        <circle cx="12" cy="5" r="2" fill="currentColor" />
+                        <circle cx="12" cy="12" r="2" fill="currentColor" />
+                        <circle cx="12" cy="19" r="2" fill="currentColor" />
                     </svg>
                 </button>
             </button>

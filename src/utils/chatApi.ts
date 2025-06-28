@@ -1,5 +1,5 @@
 import axios from "axios";
-import { Chat } from "@/app/types";
+import { Chat } from "@/types";
 
 export const chatApi = {
     async fetchChats(userId: string): Promise<Chat[]> {

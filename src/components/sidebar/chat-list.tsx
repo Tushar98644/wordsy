@@ -1,12 +1,12 @@
-import { ChatListProps } from "@/app/types";
+import { ChatListProps } from "@/types";
 import { ChatItem } from "./chat-item";
 
-export const ChatList = ({ 
-    chats, 
-    selectedChatId, 
-    onChatSelect, 
-    onChatRename, 
-    onChatDelete 
+export const ChatList = ({
+    chats,
+    selectedChatId,
+    onChatSelect,
+    onChatRename,
+    onChatDelete
 }: ChatListProps) => (
     <div className="px-1 space-y-0 mx-1">
         {chats.length > 0 ? (
