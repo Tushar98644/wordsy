@@ -32,10 +32,8 @@ export default function TopControls() {
 
             {/* Right Side Controls - Adjusted spacing */}
             <div className="flex items-center gap-1 sm:gap-3">
-                {/* Language Selector */}
                 <VoiceControlsMenu />
 
-                {/* Microphone Button - Responsive size */}
                 <Button 
                     size="sm" 
                     variant="default" 

@@ -1,19 +1,18 @@
-import React, { createContext, useContext, ReactNode } from 'react';
+'use client';
+
+import { createContext, useContext, ReactNode } from 'react';
 import { useMobileSidebar } from '@/hooks/useMobileSidebar';
 import { useAutoScroll } from '@/hooks/useAutoScroll';
 import { useKeyboardHandlers } from '@/hooks/useKeyboardHandlers';
 import { useChatContext } from '@/context/chat-context';
 
 interface UIContextType {
-  // Mobile sidebar
   mobileSidebarOpen: boolean;
   openSidebar: () => void;
   closeSidebar: () => void;
   
-  // Auto scroll
   messagesEndRef: React.RefObject<HTMLDivElement | null>;
   
-  // Keyboard handlers
   handleKeyPress: (e: React.KeyboardEvent) => void;
 }
 

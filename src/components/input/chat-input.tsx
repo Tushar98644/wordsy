@@ -1,4 +1,3 @@
-import React from 'react';
 import { Input } from "@/components/ui/input";
 import TopControls from "@/components/chat-window/top-controls";
 import EditingBanner from "@/components/input/editing-banner";
@@ -12,12 +11,8 @@ import { useUIContext } from '@/context/ui-context';
 const ChatInput: React.FC = () => {
   const { input, setInput, handleSubmit, removeFile, file, fileMetadata, isUploading, isLoading, isEditing, setIsEditing, handleSaveEdit, fileUrl, handleInputChange, fileInputRef, handleFileChange } = useChatContext();
   const { handleKeyPress } = useUIContext();
-  const {
-    hasContent,
-    getPlaceholderText,
-    getFilePreviewUrl,
-    submitForm
-  } = useChatInput({
+  const { hasContent, getPlaceholderText, getFilePreviewUrl, submitForm } = 
+  useChatInput({ 
     input,
     setInput,
     handleSubmit,
