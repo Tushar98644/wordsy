@@ -1,12 +1,13 @@
-"use client"
+import ChatInterface from '@/components/chat-interface';
+import { ChatProvider } from '@/context/chat-context';
+import React from 'react'
 
-import ChatInterface from "@/components/chat-interface"
-import { ChatProvider } from "@/context/chat-context"
-
-export default function Home() {
+const HomePage = () => {
   return (
     <ChatProvider>
       <ChatInterface />
     </ChatProvider>
   )
 }
+
+export default HomePage;

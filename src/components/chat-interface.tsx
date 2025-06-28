@@ -10,9 +10,10 @@ import { useFileUpload } from "@/hooks/useFileUpload";
 import { useChatManager } from "@/hooks/useChatManager";
 import { useMessageActions } from "@/hooks/useMessageActions";
 import { Menu } from "lucide-react";
+import { WelcomeModal } from "./welcome-modal";
 
 const ChatInterface = () => {
-  const { user } = useUser();
+  const { user, isSignedIn } = useUser();
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
   const {
