@@ -14,7 +14,7 @@ const ChatInterface = () => {
   const { user } = useUser();
   const { file, fileUrl, fileType, fileInputRef, isUploading, handleFileChange, removeFile } = useFileUpload();
 
-  const { chatId, setChatId, messages, input, setInput, handleInputChange, handleSubmit, setMessages, resetChat } = useChatManager({
+  const { chatId, setChatId, messages, input, setInput, handleInputChange, handleSubmit, setMessages, resetChat, isLoading } = useChatManager({
     userId: user?.id || null,
     fileUrl,
     fileType,
@@ -67,6 +67,7 @@ const ChatInterface = () => {
                   file={file}
                   fileUrl={fileUrl}
                   isUploading={isUploading}
+                  isLoading={isLoading}
                   isEditing={isEditing}
                   setIsEditing={setIsEditing}
                   handleSaveEdit={handleSaveEdit}
@@ -95,6 +96,7 @@ const ChatInterface = () => {
                   file={file}
                   fileUrl={fileUrl}
                   isUploading={isUploading}
+                  isLoading={isLoading}
                   isEditing={isEditing}
                   setIsEditing={setIsEditing}
                   handleSaveEdit={handleSaveEdit}

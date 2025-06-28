@@ -13,6 +13,7 @@ interface ChatInputProps {
     file: File | null;
     fileUrl?: string | null;
     isUploading: boolean;
+    isLoading: boolean;
     isEditing: { id: string; content: string } | null;
     setIsEditing: React.Dispatch<React.SetStateAction<{ id: string; content: string } | null>>;
     handleSaveEdit: (e: React.FormEvent) => void;
@@ -29,11 +30,13 @@ const ChatInput = ({
     file,
     fileUrl,
     isUploading,
+    isLoading,
     isEditing,
     setIsEditing,
     handleSaveEdit,
     removeFile
 }: ChatInputProps) => {
+    const isDisabled = isUploading || isLoading;
 
     return (
         <div className="w-full max-w-4xl mx-auto px-4 pb-8 ">
@@ -43,8 +46,8 @@ const ChatInput = ({
                 <div className="mb-4 p-3 bg-[#2f2f2f] rounded-lg flex justify-between items-center">
                     <span className="text-gray-400">Editing message</span>
                     <div className="flex space-x-2">
-                        <Button variant="outline" className="text-gray-300 hover:bg-[#404040]" onClick={() => setIsEditing(null)}>Cancel</Button>
-                        <Button className="bg-[#4f46e5] hover:bg-[#4338ca]" onClick={handleSaveEdit}>Save Changes</Button>
+                        <Button variant="outline" className="text-gray-300 hover:bg-[#404040]" onClick={() => setIsEditing(null)} disabled={isDisabled}>Cancel</Button>
+                        <Button className="bg-[#4f46e5] hover:bg-[#4338ca]" onClick={handleSaveEdit} disabled={isDisabled}>Save Changes</Button>
                     </div>
                 </div>
             )}
@@ -66,7 +69,7 @@ const ChatInput = ({
                             </div>
                         )}
                     </div>
-                    <Button variant="ghost" size="icon" className="text-gray-400 hover:text-white" onClick={removeFile} disabled={isUploading}>
+                    <Button variant="ghost" size="icon" className="text-gray-400 hover:text-white" onClick={removeFile} disabled={isDisabled}>
                         <X className="w-4 h-4" />
                     </Button>
                 </div>
@@ -78,18 +81,18 @@ const ChatInput = ({
                             value={input}
                             onChange={handleInputChange}
                             onKeyDown={handleKeyPress}
-                            placeholder="Ask anything"
-                            disabled={isUploading}
+                            placeholder={isLoading ? "Please wait for response..." : "Ask anything"}
+                            disabled={isDisabled}
                             className="bg-transparent border-none text-white placeholder-gray-500 text-[18px] px-6 py-6 focus:ring-0 focus:outline-none rounded-[32px] resize-none"
                         />
 
                         {(input.trim() || file) && (
                             <Button
                                 type="submit"
-                                disabled={isUploading}
-                                className={`absolute right-5 bottom-5 ${isUploading ? 'bg-gray-500' : 'bg-white hover:bg-gray-100'} text-black rounded-full w-8 h-8 p-0 flex items-center justify-center`}
+                                disabled={isDisabled}
+                                className={`absolute right-5 bottom-5 ${isDisabled ? 'bg-gray-500' : 'bg-white hover:bg-gray-100'} text-black rounded-full w-8 h-8 p-0 flex items-center justify-center`}
                             >
-                                {isUploading ? (
+                                {isDisabled ? (
                                     <div className="flex space-x-1">
                                         <div className="w-1.5 h-1.5 bg-black rounded-full animate-bounce" />
                                         <div className="w-1.5 h-1.5 bg-black rounded-full animate-bounce delay-75" />
@@ -112,7 +115,7 @@ const ChatInput = ({
                             className="text-gray-400"
                             type="button"
                             onClick={() => fileInputRef.current?.click()}
-                            disabled={isUploading}
+                            disabled={isDisabled}
                         >
                             <Plus className="w-5 h-5" />
                             <input
@@ -121,21 +124,21 @@ const ChatInput = ({
                                 className="hidden"
                                 onChange={handleFileChange}
                                 accept="image/*,application/pdf,text/plain,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-                                disabled={isUploading}
+                                disabled={isDisabled}
                             />
                         </Button>
 
-                        <Button variant="ghost" className="text-gray-400 flex items-center gap-2" disabled={isUploading}>
+                        <Button variant="ghost" className="text-gray-400 flex items-center gap-2" disabled={isDisabled}>
                             <Shuffle className="w-4 h-4" />
                             <span className="text-sm">Tools</span>
                         </Button>
                     </div>
 
                     <div className="flex gap-2">
-                        <Button variant="ghost" size="icon" className="text-gray-400" disabled={isUploading}>
+                        <Button variant="ghost" size="icon" className="text-gray-400" disabled={isDisabled}>
                             <Mic className="w-5 h-5" />
                         </Button>
-                        <Button variant="ghost" size="icon" className="text-gray-400" disabled={isUploading}>
+                        <Button variant="ghost" size="icon" className="text-gray-400" disabled={isDisabled}>
                             <AudioLines className="w-5 h-5" />
                         </Button>
                     </div>
