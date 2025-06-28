@@ -1,22 +1,7 @@
+import { FileMetadata, File } from "@/types/file";
 import { useChat } from "@ai-sdk/react";
 import axios from "axios";
 import { useState, useMemo } from "react";
-
-interface FileMetadata {
-  fileId: string;
-  fileName: string;
-  mimeType: string;
-  size: number;
-}
-
-interface IFile {
-  fileId: string;
-  fileName: string;
-  fileUrl: string;
-  mimeType: string;
-  size: number;
-  uploadedAt: Date;
-}
 
 type ChatManagerProps = {
   userId: string | null;
@@ -33,7 +18,6 @@ export function useChatManager({ userId, fileUrl, fileMetadata }: ChatManagerPro
     input,
     setInput,
     handleInputChange,
-    handleSubmit,
     setMessages: setRawMessages,
     append,
   } = useChat({
@@ -50,16 +34,15 @@ export function useChatManager({ userId, fileUrl, fileMetadata }: ChatManagerPro
     },
   });
 
-  // Transform messages to include timestamp and filter out unwanted properties
   const messages = useMemo(() => {
     return rawMessages
-      .filter((message) => message.role !== "data") // Filter out data messages
+      .filter((message) => message.role !== "data")
       .map((message) => ({
         id: message.id,
         role: message.role as "user" | "assistant" | "system",
         content: message.content,
         timestamp: new Date(),
-        files: (message as any).files as IFile[] | undefined,
+        files: (message as any).files as File[] | undefined,
       }));
   }, [rawMessages]);
 
@@ -68,17 +51,16 @@ export function useChatManager({ userId, fileUrl, fileMetadata }: ChatManagerPro
     role: 'user' | 'assistant' | 'system';
     content: string;
     timestamp: Date;
-    files?: IFile[];
+    files?: File[];
   }>) => {
-    // Transform back to UIMessage format, filtering out timestamp
     const transformedMessages = newMessages.map(({ timestamp, ...rest }) => ({
       ...rest,
-      createdAt: timestamp, // Store timestamp as createdAt if needed
+      createdAt: timestamp,
     }));
-    setRawMessages(transformedMessages as any); // Type assertion needed due to UIMessage complexity
+    setRawMessages(transformedMessages as any);
   };
 
-  const createFileAttachment = (): IFile | undefined => {
+  const createFileAttachment = (): File | undefined => {
     if (!fileUrl || !fileMetadata) return undefined;
         
     return {

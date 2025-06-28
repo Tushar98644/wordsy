@@ -1,14 +1,8 @@
-import { X, Plus, Shuffle, Mic, AudioLines, FileText, Image as ImageIcon } from "lucide-react";
+import { X, Plus, Shuffle, Mic, AudioLines, FileText } from "lucide-react";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import TopControls from "./top-controls";
-
-interface FileMetadata {
-    fileId: string;
-    fileName: string;
-    mimeType: string;
-    size: number;   
-}
+import { FileMetadata } from "@/types/file";
 
 interface ChatInputProps {
     input: string;
@@ -26,7 +20,7 @@ interface ChatInputProps {
     setIsEditing: React.Dispatch<React.SetStateAction<{ id: string; content: string } | null>>;
     handleSaveEdit: (e: React.FormEvent) => void;
     removeFile: () => void;
-    setInput: React.Dispatch<React.SetStateAction<string>>; // Add this prop
+    setInput: React.Dispatch<React.SetStateAction<string>>;
 }
 
 const ChatInput = ({
@@ -45,7 +39,7 @@ const ChatInput = ({
     setIsEditing,
     handleSaveEdit,
     removeFile,
-    setInput // Add this prop
+    setInput
 }: ChatInputProps) => {
     const isDisabled = isUploading || isLoading;
 
@@ -67,7 +61,6 @@ const ChatInput = ({
         e.preventDefault();
 
         if (input.trim() || file || fileMetadata) {
-            // Clear the input immediately when submitting
             setInput('');
             
             handleSubmit(e);
@@ -81,10 +74,8 @@ const ChatInput = ({
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
             if (input.trim() || file || fileMetadata) {
-                // Clear the input immediately when pressing Enter
                 setInput('');
                 
-                // Create a synthetic form event
                 const syntheticEvent = {
                     preventDefault: () => {},
                     currentTarget: e.currentTarget.form
@@ -109,7 +100,6 @@ const ChatInput = ({
     const isPDF = displayMimeType.includes('pdf');
     const isDocument = displayMimeType.includes('document') || displayMimeType.includes('text');
 
-    // Determine placeholder text based on loading state
     const getPlaceholderText = () => {
         if (isLoading) return "Please wait while the response is being generated...";
         if (isUploading) return "Uploading file...";

@@ -16,7 +16,7 @@ function useChatContextValue() {
   const chat = useChatManager({
     userId: user?.id || null,
     fileUrl: fileUpload.fileUrl,
-    fileType: fileUpload.fileType,
+    fileMetadata: fileUpload.fileMetadata,
   });
 
   const messageActions = useMessageActions({

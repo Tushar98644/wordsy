@@ -1,15 +1,11 @@
 import { useState, useRef } from 'react';
 import { nanoid } from 'nanoid';
+import { FileMetadata } from '@/types/file';
 
 export const useFileUpload = () => {
   const [file, setFile] = useState<File | null>(null);
   const [fileUrl, setFileUrl] = useState<string | null>(null);
-  const [fileMetadata, setFileMetadata] = useState<{
-    fileId: string;
-    fileName: string;
-    mimeType: string;
-    size: number;
-  } | null>(null);
+  const [fileMetadata, setFileMetadata] = useState<FileMetadata | null>(null);
   const [fileType, setFileType] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);

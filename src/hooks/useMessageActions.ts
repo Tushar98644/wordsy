@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useChatManager } from "./useChatManager";
 
 export function useMessageActions({
   messages,

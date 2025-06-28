@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { memoryClient } from "@/lib/memory/client";
 import { shouldStoreMessage } from "@/utils/memory";
-import type { GetContextParams, StoreParams, GetMemoriesParams } from "@/types/memory";
+import type { GetContextParams, StoreParams } from "@/types/memory";
 
 export async function getContext(userId: string, params: GetContextParams) {
   const { query, limit = 20 } = params;
@@ -52,7 +52,7 @@ export async function storeMemory(userId: string, params: StoreParams) {
   }
 }
 
-export async function getUserMemories(userId: string, params: GetMemoriesParams = {}) {
+export async function getUserMemories(userId: string) {
   try {
     const memories = await memoryClient.getAll({
       user_id: userId,

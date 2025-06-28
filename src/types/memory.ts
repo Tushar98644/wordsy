@@ -13,10 +13,6 @@ export interface StoreParams {
     metadata?: MemoryMetadata;
 }
 
-export interface GetMemoriesParams {
-    limit?: number;
-}
-
 export interface MemoryItem {
     id: string;
     memory: string;

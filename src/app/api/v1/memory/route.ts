@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
               return await storeMemory(userId, params);
 
             case 'getUserMemories': 
-              return await getUserMemories(userId, params);
+              return await getUserMemories(userId);
 
             default:
                 return NextResponse.json({ error: "Invalid action" }, { status: 400 });

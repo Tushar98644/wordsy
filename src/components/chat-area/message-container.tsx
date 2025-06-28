@@ -23,7 +23,7 @@ interface ContainerProps {
   messagesEndRef: React.RefObject<HTMLDivElement | null>;
 }
 
-const MessageContainer = ({ messages, handleEditMessage, handleDeleteMessage, messagesEndRef }: ContainerProps) => {
+const MessageContainer = ({ messages, handleEditMessage, messagesEndRef }: ContainerProps) => {
 
   const formatFileSize = (bytes: number): string => {
     if (bytes === 0) return '0 B';
