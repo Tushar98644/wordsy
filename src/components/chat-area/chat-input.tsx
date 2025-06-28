@@ -34,6 +34,7 @@ const ChatInput = ({
     handleSaveEdit,
     removeFile
 }: ChatInputProps) => {
+
     return (
         <div className="w-full max-w-4xl mx-auto px-4 pb-8 ">
             <TopControls />
