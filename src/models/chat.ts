@@ -9,7 +9,6 @@ export interface IFile {
   uploadedAt: Date;
 }
 
-
 export interface IMessage {
   id: string;
   role: 'user' | 'assistant' | 'system';
@@ -26,15 +25,6 @@ export interface IChat extends Document {
   createdAt: Date;
   updatedAt: Date;
 }
-
-const FileSchema = new Schema<IFile>({
-  fileId: { type: String, required: true },
-  fileName: { type: String, required: true },
-  fileUrl: { type: String, required: true },
-  mimeType: { type: String, required: true },
-  size: { type: Number, required: true },
-  uploadedAt: { type: Date }
-}, { _id: false });
 
 const MessageSchema = new Schema({
   id: String,
