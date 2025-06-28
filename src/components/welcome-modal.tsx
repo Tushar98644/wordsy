@@ -18,7 +18,7 @@ export const WelcomeModal = () => {
             </p>
 
             <div className="space-y-4">
-                <Button onClick={()=>redirect("/log-in")} className="w-full cursor-pointer bg-white text-black hover:bg-gray-100 rounded-full h-[50px] text-[16px] font-medium transition-colors">
+                <Button onClick={()=>redirect("/sign-in")} className="w-full cursor-pointer bg-white text-black hover:bg-gray-100 rounded-full h-[50px] text-[16px] font-medium transition-colors">
                   Log in
                 </Button>
 
