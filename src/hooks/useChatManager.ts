@@ -1,4 +1,4 @@
-import { FileMetadata, File } from "@/types/file";
+import { FileMetadata, IFile } from "@/types/file";
 import { useChat } from "@ai-sdk/react";
 import axios from "axios";
 import { useState, useMemo } from "react";
@@ -42,7 +42,7 @@ export function useChatManager({ userId, fileUrl, fileMetadata }: ChatManagerPro
         role: message.role as "user" | "assistant" | "system",
         content: message.content,
         timestamp: new Date(),
-        files: (message as any).files as File[] | undefined,
+        files: (message as any).files as IFile[] | undefined,
       }));
   }, [rawMessages]);
 
@@ -51,7 +51,7 @@ export function useChatManager({ userId, fileUrl, fileMetadata }: ChatManagerPro
     role: 'user' | 'assistant' | 'system';
     content: string;
     timestamp: Date;
-    files?: File[];
+    files?: IFile[];
   }>) => {
     const transformedMessages = newMessages.map(({ timestamp, ...rest }) => ({
       ...rest,
@@ -60,7 +60,7 @@ export function useChatManager({ userId, fileUrl, fileMetadata }: ChatManagerPro
     setRawMessages(transformedMessages as any);
   };
 
-  const createFileAttachment = (): File | undefined => {
+  const createFileAttachment = (): IFile | undefined => {
     if (!fileUrl || !fileMetadata) return undefined;
         
     return {

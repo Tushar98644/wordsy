@@ -4,13 +4,12 @@ import { useRef, useEffect, useState } from "react";
 import { Sidebar } from "./sidebar/sidebar";
 import ChatHeader from "./chat-area/header";
 import ChatInput from "./input/chat-input";
-import MessageContainer from "./chat-area/message-container";
+import MessageContainer from "./messages/message-container";
 import { useUser } from "@clerk/nextjs";
 import { useFileUpload } from "@/hooks/useFileUpload";
 import { useChatManager } from "@/hooks/useChatManager";
 import { useMessageActions } from "@/hooks/useMessageActions";
 import { Menu } from "lucide-react";
-import { WelcomeModal } from "./welcome-modal";
 
 const ChatInterface = () => {
   const { user, isSignedIn } = useUser();
