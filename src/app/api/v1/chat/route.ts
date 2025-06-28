@@ -3,6 +3,7 @@ import { convertToCoreMessages, streamText } from "ai";
 import { Chat } from "@/models/chat";
 import { connectToDB } from "@/lib/db";
 import { nanoid } from "nanoid";
+import axios from "axios";
 
 export async function POST(req: Request) {
   try {
@@ -25,24 +26,15 @@ export async function POST(req: Request) {
             ? lastUserMessage.content
             : lastUserMessage.content.find((c: { type: string }) => c.type === 'text')?.text || '';
 
-        const memoryResponse = await fetch(
+        const memoryResponse = await axios.post<{ context: string, memoriesFound: number }>(
           `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/v1/memory`,
-          {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ action: 'getContext', userId, query }),
-          }
+          { action: 'getContext', userId, query },
+          { headers: { 'Content-Type': 'application/json' } }
         );
 
-        if (memoryResponse.ok) {
-          const contentType = memoryResponse.headers.get('content-type');
-          if (contentType?.includes('application/json')) {
-            const memoryData = await memoryResponse.json();
-            memoryContext = memoryData.context;
-            memoriesFound = memoryData.memoriesFound;
-          } else {
-            console.warn("[MEMORY] Non-JSON response:", await memoryResponse.text());
-          }
+        if (memoryResponse.status === 200) {
+          memoryContext = memoryResponse.data.context;
+          memoriesFound = memoryResponse.data.memoriesFound;
         } else {
           console.warn("[MEMORY] API failed:", memoryResponse.status);
         }
