@@ -8,22 +8,20 @@ export default function LandingPage() {
 
   const { isSignedIn } = useUser();
   return (
-    <>  
-    {isSignedIn ? (
+    <>
+      {isSignedIn ? (
         <ChatInterface />
-    ) : (
-      <div className="relative h-screen w-screen bg-[#212121] overflow-hidden">
-      {/* Blurred background chat layout */}
-      <div className="absolute inset-0 filter blur-sm pointer-events-none">
-        <ChatInterface />
-      </div>
+      ) : (
+        <div className="relative h-screen w-screen bg-[#212121] overflow-hidden">
+          <div className="absolute inset-0 filter blur-xs pointer-events-none">
+            <ChatInterface />
+          </div>
 
-      {/* Welcome Modal on top */}
-      <div className="absolute inset-0 z-10 flex items-center justify-center">
-        <WelcomeModal />
-      </div>
-    </div>
-    )}
+          <div className="absolute inset-0 z-10 flex items-center justify-center">
+            <WelcomeModal />
+          </div>
+        </div>
+      )}
     </>
   )
 }
