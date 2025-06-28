@@ -3,7 +3,7 @@
 import { useRef, useEffect, useState } from "react";
 import { Sidebar } from "./sidebar/sidebar";
 import ChatHeader from "./chat-area/header";
-import ChatInput from "./chat-area/chat-input";
+import ChatInput from "./input/chat-input";
 import MessageContainer from "./chat-area/message-container";
 import { useUser } from "@clerk/nextjs";
 import { useFileUpload } from "@/hooks/useFileUpload";
@@ -102,7 +102,7 @@ const ChatInterface = () => {
           resetChat={resetChat}
           setMessages={setMessages}
           setChatId={setChatId}
-          isCollapsed={false} 
+          isCollapsed={false}
         />
       </div>
 
