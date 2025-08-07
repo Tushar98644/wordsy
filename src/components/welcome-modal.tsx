@@ -1,7 +1,6 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { SignUpButton } from "@clerk/nextjs"
 import { redirect } from "next/navigation";
 
 export const WelcomeModal = () => {
@@ -22,7 +21,6 @@ export const WelcomeModal = () => {
                   Log in
                 </Button>
 
-              <SignUpButton mode="redirect">
                 <Button
                   onClick={()=>redirect("/sign-in")}
                   variant="outline"
@@ -30,7 +28,6 @@ export const WelcomeModal = () => {
                 >
                   Sign up for free
                 </Button>
-              </SignUpButton>
             </div>
 
             <button  className="mt-6 hover:cursor-pointer text-white underline text-[20px] transition-colors">

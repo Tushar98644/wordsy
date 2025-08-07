@@ -1,7 +1,6 @@
 'use client';
 
 import { createContext, useContext, ReactNode } from 'react';
-import { useUser } from "@clerk/nextjs";
 import { useFileUpload } from "@/hooks/useFileUpload";
 import { useChatManager } from "@/hooks/useChatManager";
 import { useMessageActions } from "@/hooks/useMessageActions";
@@ -42,8 +41,10 @@ interface ChatContextType {
 const ChatContext = createContext<ChatContextType | undefined>(undefined);
 
 export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const { user } = useUser();
-
+  // const { user } = useUser();
+  const user = {
+    id: '1',
+  };
   const fileUpload = useFileUpload();
   const chatManager = useChatManager({
     userId: user?.id || null,

@@ -1,7 +1,7 @@
 import { gemini } from "@/config/gemini";
 import { convertToCoreMessages, streamText } from "ai";
 import { Chat } from "@/models/chat";
-import { connectToDB } from "@/lib/db";
+import { connectToDB } from "@/db/connect";
 import { nanoid } from "nanoid";
 import axios from "axios";
 
@@ -10,26 +10,39 @@ export async function POST(req: Request) {
     await connectToDB();
     console.log("[CHAT] Connected to DB ✅");
 
-    const { messages, fileUrl, fileMetadata, chatId, userId } = await req.json();
-    console.log("[CHAT] Request Body:", { userId, chatId, fileUrl, fileMetadata });
+    const { messages, fileUrl, fileMetadata, chatId, userId } =
+      await req.json();
+    console.log("[CHAT] Request Body:", {
+      userId,
+      chatId,
+      fileUrl,
+      fileMetadata,
+    });
 
     const lastUserMessage = messages[messages.length - 1];
     console.log("[CHAT] Last user message:", lastUserMessage);
 
-    let memoryContext = '';
+    let memoryContext = "";
     let memoriesFound = 0;
 
     if (userId && lastUserMessage?.content) {
       try {
         const query =
-          typeof lastUserMessage.content === 'string'
+          typeof lastUserMessage.content === "string"
             ? lastUserMessage.content
-            : lastUserMessage.content.find((c: { type: string }) => c.type === 'text')?.text || '';
+            : lastUserMessage.content.find(
+                (c: { type: string }) => c.type === "text"
+              )?.text || "";
 
-        const memoryResponse = await axios.post<{ context: string, memoriesFound: number }>(
-          `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/v1/memory`,
-          { action: 'getContext', userId, query },
-          { headers: { 'Content-Type': 'application/json' } }
+        const memoryResponse = await axios.post<{
+          context: string;
+          memoriesFound: number;
+        }>(
+          `${
+            process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"
+          }/api/v1/memory`,
+          { action: "getContext", userId, query },
+          { headers: { "Content-Type": "application/json" } }
         );
 
         if (memoryResponse.status === 200) {
@@ -62,7 +75,7 @@ export async function POST(req: Request) {
       const last = messages[messages.length - 1];
       if (last.role === "user") {
         const isImage = /\.(jpg|jpeg|png|gif|webp|bmp)$/i.test(fileUrl);
-        
+
         // Create enhanced message for AI processing
         enhancedUserMessage = {
           role: "user",
@@ -70,13 +83,20 @@ export async function POST(req: Request) {
             { type: "text", text: last.content || "" },
             isImage
               ? { type: "image", image: fileUrl }
-              : { type: "file", data: fileUrl, mimeType: fileMetadata.mimeType || "application/pdf" },
+              : {
+                  type: "file",
+                  data: fileUrl,
+                  mimeType: fileMetadata.mimeType || "application/pdf",
+                },
           ],
           files: [fileAttachment],
         };
-        
+
         enhanced[enhanced.length - 1] = enhancedUserMessage;
-        console.log("[FILE] Enhanced user message with file:", enhancedUserMessage);
+        console.log(
+          "[FILE] Enhanced user message with file:",
+          enhancedUserMessage
+        );
       }
     }
 
@@ -86,9 +106,10 @@ export async function POST(req: Request) {
     const filtered: typeof enhanced = [];
     for (let i = enhanced.length - 1; i >= 0; i--) {
       const msg = enhanced[i];
-      const length = typeof msg.content === "string"
-        ? msg.content.length
-        : JSON.stringify(msg.content).length;
+      const length =
+        typeof msg.content === "string"
+          ? msg.content.length
+          : JSON.stringify(msg.content).length;
       const tokens = length / 4;
       if (count + tokens > maxContextLength) break;
       count += tokens;
@@ -128,7 +149,7 @@ export async function POST(req: Request) {
         role: "user",
         content: originalUserMessage.content,
         timestamp: new Date(),
-        ...(fileAttachment && { files: [fileAttachment] })
+        ...(fileAttachment && { files: [fileAttachment] }),
       };
 
       console.log("[USER MESSAGE] User message for DB:", userMessage);
@@ -141,10 +162,10 @@ export async function POST(req: Request) {
       };
 
       console.log("[DB] Saving messages to chat:", chatId);
-      
+
       try {
         const updatedChat = await Chat.findByIdAndUpdate(
-          chatId, 
+          chatId,
           {
             $push: { messages: { $each: [userMessage, assistantMessage] } },
             $set: { updatedAt: new Date() },
@@ -152,31 +173,46 @@ export async function POST(req: Request) {
           { new: true }
         );
         console.log("[DB] Chat updated successfully ✅");
-        console.log("[DB] Last user message saved:", updatedChat.messages[updatedChat.messages.length - 2]);
+        console.log(
+          "[DB] Last user message saved:",
+          updatedChat.messages[updatedChat.messages.length - 2]
+        );
       } catch (dbError) {
         console.error("[DB] Error updating chat:", dbError);
       }
     }
 
     if (userId) {
-      const userContent = typeof lastUserMessage.content === 'string'
-        ? lastUserMessage.content
-        : lastUserMessage.content.find((c: { type: string }) => c.type === 'text')?.text || '';
+      const userContent =
+        typeof lastUserMessage.content === "string"
+          ? lastUserMessage.content
+          : lastUserMessage.content.find(
+              (c: { type: string }) => c.type === "text"
+            )?.text || "";
 
       if (userContent) {
         try {
-          await axios.post(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/v1/memory`, {
-              action: 'store',
+          await axios.post(
+            `${
+              process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"
+            }/api/v1/memory`,
+            {
+              action: "store",
               userId,
               content: userContent,
-              metadata: { 
-                role: 'user', 
-                type: 'conversation',
-                ...(fileAttachment && { hasFile: true, fileName: fileAttachment.fileName })
-              }
-            }, {
-              headers: { 'Content-Type': 'application/json' }
-            });
+              metadata: {
+                role: "user",
+                type: "conversation",
+                ...(fileAttachment && {
+                  hasFile: true,
+                  fileName: fileAttachment.fileName,
+                }),
+              },
+            },
+            {
+              headers: { "Content-Type": "application/json" },
+            }
+          );
         } catch (err) {
           console.error("[MEMORY] Error storing user message:", err);
         }
@@ -184,15 +220,24 @@ export async function POST(req: Request) {
 
       if (responseText && responseText.length > 30) {
         try {
-          const assistantMemoryRes = await axios.post(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/v1/memory`, {
-              action: 'store',
+          const assistantMemoryRes = await axios.post(
+            `${
+              process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"
+            }/api/v1/memory`,
+            {
+              action: "store",
               userId,
               content: responseText,
-              metadata: { role: 'assistant', type: 'conversation' },
-            }, {
-              headers: { 'Content-Type': 'application/json' }
-            }); 
-          console.log("[MEMORY] Stored assistant message:", assistantMemoryRes.status);
+              metadata: { role: "assistant", type: "conversation" },
+            },
+            {
+              headers: { "Content-Type": "application/json" },
+            }
+          );
+          console.log(
+            "[MEMORY] Stored assistant message:",
+            assistantMemoryRes.status
+          );
         } catch (err) {
           console.error("[MEMORY] Error storing assistant message:", err);
         }
@@ -207,9 +252,10 @@ export async function POST(req: Request) {
         "X-Memories-Found": memoriesFound.toString(),
       },
     });
-
   } catch (e) {
     console.error("[ERROR] Chat API failed:", e);
-    return new Response(JSON.stringify({ error: (e as Error).message }), { status: 500 });
+    return new Response(JSON.stringify({ error: (e as Error).message }), {
+      status: 500,
+    });
   }
 }

@@ -7,11 +7,9 @@ import {
     Check
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useUser, SignInButton, UserButton } from "@clerk/clerk-react";
 import { useState } from "react";
 
 const ChatHeader = ({ isOpen }: { isOpen: boolean }) => {
-    const { isSignedIn } = useUser();
     const [openDropdown, setOpenDropdown] = useState(false);
 
     return (
@@ -72,7 +70,7 @@ const ChatHeader = ({ isOpen }: { isOpen: boolean }) => {
             <div className="flex items-center gap-2 ">
                 {/* Hide share buttons on collapsed mobile */}
                     <div className="hidden md:flex">
-                        {isSignedIn ? (
+                        {/* {isSignedIn ? (
                             <Button
                                 variant="default"
                                 className="bg-transparent text-white hover:bg-[#2f2f2f] px-3 py-1.5 rounded-3xl flex items-center gap-2 text-sm"
@@ -87,7 +85,7 @@ const ChatHeader = ({ isOpen }: { isOpen: boolean }) => {
                                     Get Plus
                                 </Button>
                             </SignInButton>
-                        )}
+                        )} */}
 
                         <Button
                             variant="default"
@@ -98,15 +96,15 @@ const ChatHeader = ({ isOpen }: { isOpen: boolean }) => {
                     </div>
 
                 {/* Always show UserButton */}
-                {isSignedIn ? (
+                {/* {isSignedIn ? (
                     <div className="pl-3">
                         <UserButton />
                     </div>
-                ) : (
+                ) : ( */}
                     <div className="w-8 h-8 bg-gray-600 rounded-full flex items-center justify-center text-sm font-medium">
                         ?
                     </div>
-                )}
+                {/* )} */}
             </div>
         </div>
     );

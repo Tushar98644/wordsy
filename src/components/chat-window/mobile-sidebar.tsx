@@ -1,4 +1,4 @@
-import { Sidebar } from "@/components/sidebar/sidebar";
+import { Sidebar } from "@/components/layout/sidebar/sidebar";
 import { useUIContext } from "@/context/ui-context";
 import { useChatContext } from "@/context/chat-context";
 

@@ -1,6 +1,5 @@
 "use client";
 import { useState } from "react";
-import { useUser } from "@clerk/nextjs";
 import BottomSection from "./bottom-section";
 import TopSection from "./top-section";
 
@@ -16,7 +15,9 @@ export const Sidebar = ({
   setChatId, 
   isCollapsed,
 }: SidebarProps) => {
-    const { user } = useUser();
+    const user = {
+        id: '1',
+    }
     const { chats, updateChat, removeChat } = useChats(user?.id);
     const [selectedChatId, setSelectedChatId] = useState<string | null>(null);
 
