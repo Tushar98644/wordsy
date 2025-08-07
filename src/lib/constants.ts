@@ -1,0 +1,1 @@
+export const COOKIE_KEY_SIDEBAR_STATE = "sidebar:state";

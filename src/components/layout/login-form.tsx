@@ -21,7 +21,7 @@ import { GoogleIcon } from "@/components/ui/google-icon";
 export const SignIn = () => {
 
   const handleSocialSignIn = (provider: "google" | "github") => {
-    authClient.signIn.social({ provider }).catch((e:any) => {
+    authClient.signIn.social({ provider }).catch((e: any) => {
       toast.error(e.error);
     });
   };
@@ -40,78 +40,78 @@ export const SignIn = () => {
           </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col">
-            <div className="flex flex-col gap-6">
-              <div className="grid gap-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  autoFocus
-                  // disabled={}
-                  value={''}
-                  onChange={()=>{}}
-                  type="email"
-                  placeholder="user@example.com"
-                  required
-                />
-              </div>
-              <div className="grid gap-2">
-                <div className="flex items-center">
-                  <Label htmlFor="password">Password</Label>
-                </div>
-                <Input
-                  id="password"
-                  // disabled={}
-                  value={''}
-                  placeholder="********"
-                  onKeyDown={()=>{}}
-                  onChange={()=>{}}
-                  type="password"
-                  required
-                />
-              </div>
-              <Button
-                className="w-full"
-                onClick={()=>{}}
+          <div className="flex flex-col gap-6">
+            <div className="grid gap-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                autoFocus
                 // disabled={}
+                value={''}
+                onChange={() => { }}
+                type="email"
+                placeholder="user@example.com"
+                required
+              />
+            </div>
+            <div className="grid gap-2">
+              <div className="flex items-center">
+                <Label htmlFor="password">Password</Label>
+              </div>
+              <Input
+                id="password"
+                // disabled={}
+                value={''}
+                placeholder="********"
+                onKeyDown={() => { }}
+                onChange={() => { }}
+                type="password"
+                required
+              />
+            </div>
+            <Button
+              className="w-full"
+              onClick={() => { }}
+            // disabled={}
+            >
+              {loading ? (
+                <Loader className="size-4 animate-spin ml-1" />
+              ) : (<p>Sign In</p>)}
+            </Button>
+          </div>
+          <>
+            <div className="flex items-center my-4">
+              <div className="flex-1 h-px bg-accent"></div>
+              <span className="px-4 text-sm text-muted-foreground">
+                OR CONTINUE WITH
+              </span>
+              <div className="flex-1 h-px bg-accent"></div>
+            </div>
+            <div className="flex flex-col gap-2 w-full">
+              <Button
+                variant="outline"
+                onClick={() => handleSocialSignIn("google")}
+                className="flex-1 w-full"
               >
-                {loading ? (
-                  <Loader className="size-4 animate-spin ml-1" />
-                ) : (<p>Sign In</p>)}
+                <GoogleIcon className="size-4 fill-foreground" />
+                Google
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => handleSocialSignIn("github")}
+                className="flex-1 w-full"
+              >
+                <GithubIcon className="size-4 fill-foreground" />
+                GitHub
               </Button>
             </div>
-            <>
-                <div className="flex items-center my-4">
-                  <div className="flex-1 h-px bg-accent"></div>
-                  <span className="px-4 text-sm text-muted-foreground">
-                    {/* {t("orContinueWith")} */}
-                  </span>
-                  <div className="flex-1 h-px bg-accent"></div>
-                </div>
-              <div className="flex flex-col gap-2 w-full">
-                  <Button
-                    variant="outline"
-                    onClick={() => handleSocialSignIn("google")}
-                    className="flex-1 w-full"
-                  >
-                    <GoogleIcon className="size-4 fill-foreground" />
-                    Google
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={() => handleSocialSignIn("github")}
-                    className="flex-1 w-full"
-                  >
-                    <GithubIcon className="size-4 fill-foreground" />
-                    GitHub
-                  </Button>
-              </div>
-            </>
-            <div className="my-8 text-center text-sm text-muted-foreground">
-              {/* {t("noAccount")} */}
-              <Link href="/sign-up" className="underline-offset-4 text-primary">
-                {/* {t("signUp")} */}
-              </Link>
-            </div>
+          </>
+          <div className="my-8 text-center text-sm text-muted-foreground">
+            Don&apos;t have an account?
+            <Link href="/sign-up" className="underline-offset-4 text-primary">
+              Sign Up
+            </Link>
+          </div>
         </CardContent>
       </Card>
     </div>
