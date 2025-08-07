@@ -1,6 +1,6 @@
 import { gemini } from "@/config/gemini";
 import { convertToCoreMessages, streamText } from "ai";
-import { Chat } from "@/models/chat";
+import { Chat } from "@/db/models/chat";
 import { nanoid } from "nanoid";
 import { MemoryService } from "./memory-service";
 import { ChatMessage } from "@/types/chat";
@@ -13,12 +13,19 @@ export class ChatService {
     this.memoryService = new MemoryService();
   }
 
-  async generateResponse(messages: ChatMessage[]): Promise<{ stream: any; text: string }> {
+  async generateResponse(
+    messages: ChatMessage[]
+  ): Promise<{ stream: any; text: string }> {
     const trimmedMessages = MessageProcessor.trimContextWindow(messages);
-    const coreMessages = convertToCoreMessages(trimmedMessages.map(msg => ({
-      ...msg,
-      content: typeof msg.content === 'string' ? msg.content : JSON.stringify(msg.content)
-    })));
+    const coreMessages = convertToCoreMessages(
+      trimmedMessages.map((msg) => ({
+        ...msg,
+        content:
+          typeof msg.content === "string"
+            ? msg.content
+            : JSON.stringify(msg.content),
+      }))
+    );
 
     const result = streamText({
       model: gemini("gemini-1.5-flash"),
@@ -33,11 +40,15 @@ export class ChatService {
 
     return {
       stream: result.toDataStream(),
-      text: chunks.join("")
+      text: chunks.join(""),
     };
   }
 
-  async saveToDatabase(chatId: string, userMessage: ChatMessage, assistantResponse: string): Promise<void> {
+  async saveToDatabase(
+    chatId: string,
+    userMessage: ChatMessage,
+    assistantResponse: string
+  ): Promise<void> {
     const userMsg = {
       id: nanoid(),
       role: "user" as const,
@@ -59,15 +70,25 @@ export class ChatService {
     });
   }
 
-  async processMemory(userId: string, userMessage: ChatMessage, assistantResponse: string): Promise<void> {
-    const userContent = MessageProcessor.extractTextContent(userMessage.content);
-    
+  async processMemory(
+    userId: string,
+    userMessage: ChatMessage,
+    assistantResponse: string
+  ): Promise<void> {
+    const userContent = MessageProcessor.extractTextContent(
+      userMessage.content
+    );
+
     if (userContent) {
-      await this.memoryService.storeMessage(userId, userContent, 'user');
+      await this.memoryService.storeMessage(userId, userContent, "user");
     }
-    
+
     if (assistantResponse) {
-      await this.memoryService.storeMessage(userId, assistantResponse, 'assistant');
+      await this.memoryService.storeMessage(
+        userId,
+        assistantResponse,
+        "assistant"
+      );
     }
   }
 }

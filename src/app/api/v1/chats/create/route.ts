@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connectToDB } from "@/db/connect";
-import { Chat } from "@/models/chat";
+import { Chat } from "@/db/models/chat";
 
 export async function POST(request: NextRequest) {
   try {

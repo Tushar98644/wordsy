@@ -1,9 +1,9 @@
 import React from 'react'
-import { Button } from '../ui/button'
-import { LogoIcon } from '../icons/LogoIcon'
-import { NewChatIcon } from '../icons/NewChatIcon'
-import { SearchIcon } from '../icons/SearchIcon'
-import { LibraryIcon } from '../icons/LibraryIcon'
+import { Button } from '@/components/ui/button'
+import { LogoIcon } from '@/components/icons/logo-icon'
+import { NewChatIcon } from '@/components/icons/newchat-icon'
+import { SearchIcon } from '@/components/icons/search-icon'
+import { LibraryIcon } from '@/components/icons/library-icon'
 
 type TopSectionProps = {
     handleNewChat: () => void;

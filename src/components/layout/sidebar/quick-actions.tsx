@@ -1,5 +1,5 @@
-import { GptsIcon } from "@/components/icons/GptsIcon";
-import { SoraIcon } from "@/components/icons/SoraIcon";
+import { GptsIcon } from "@/components/icons/gpts-icon";
+import { SoraIcon } from "@/components/icons/sora-icon";
 import { Button } from "@/components/ui/button";
 
 export const QuickActions = () => (

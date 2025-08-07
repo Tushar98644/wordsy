@@ -1,6 +1,6 @@
 import React from 'react'
-import { Button } from '../ui/button';
-import { SettingsIcon } from '@/components/icons/SettingsIcon';
+import { Button } from '@/components/ui/button';
+import { SettingsIcon } from '@/components/icons/settings-icon';
 
 const BottomSection = () => {
     return (

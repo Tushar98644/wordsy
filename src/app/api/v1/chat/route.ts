@@ -1,6 +1,6 @@
 import { gemini } from "@/config/gemini";
 import { convertToCoreMessages, streamText } from "ai";
-import { Chat } from "@/models/chat";
+import { Chat } from "@/db/models/chat";
 import { connectToDB } from "@/db/connect";
 import { nanoid } from "nanoid";
 import axios from "axios";

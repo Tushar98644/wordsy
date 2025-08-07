@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { Chat } from "@/models/chat";
+import { Chat } from "@/db/models/chat";
 import { connectToDB } from "@/db/connect";
 
 export async function GET(request: NextRequest) {
