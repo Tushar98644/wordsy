@@ -1,4 +1,3 @@
-import { Sidebar } from "@/components/layout/sidebar/sidebar";
 import { useUIContext } from "@/context/ui-context";
 import { useChatContext } from "@/context/chat-context";
 
@@ -23,12 +22,12 @@ export const MobileSidebar: React.FC = () => {
           ${mobileSidebarOpen ? "translate-x-0" : "-translate-x-full"} lg:relative lg:translate-x-0
         `}
       >
-        <Sidebar
+        {/* <Sidebar
           resetChat={resetChat}
           setMessages={setMessages}
           setChatId={setChatId}
           isCollapsed={false}
-        />
+        /> */}
       </div>
     </>
   );
