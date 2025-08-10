@@ -71,8 +71,6 @@ export const Sidebar = ({
 
             <div className="flex-1 py-2 p-1 overflow-y-auto">
                 <QuickActions />
-
-                      
                     <h3 className="text-sm font-medium text-gray-300 mb-2 px-3 tracking-wider">
                       Chats
                     </h3>

@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { cloudinary } from "@/config/cloudinary-config";
+import { cloudinary } from "@/config/cloudinary";
 
 interface CloudinaryUploadResult {
-   public_id: string;
-   [key : string]: any;
+  public_id: string;
+  [key: string]: any;
 }
 
 export async function POST(request: NextRequest) {
@@ -59,26 +59,28 @@ export async function POST(request: NextRequest) {
       const arrayBuffer = await file.arrayBuffer();
       const buffer = Buffer.from(arrayBuffer);
 
-      const uploadResult = await new Promise<CloudinaryUploadResult>((resolve, reject) => {
-        const uploadStream = cloudinary.uploader.upload_stream(
-          {
-            resource_type: file.type.startsWith("image/") ? "image" : "raw",
-            folder: "wordsy-uploads",
-            use_filename: true,
-            unique_filename: true,
-            type: "private"
-          },
-          (error, result) => {
-            if (error) {
-              console.error("Cloudinary upload error:", error);
-              reject(error);
-            } else {
-              resolve(result as CloudinaryUploadResult);
+      const uploadResult = await new Promise<CloudinaryUploadResult>(
+        (resolve, reject) => {
+          const uploadStream = cloudinary.uploader.upload_stream(
+            {
+              resource_type: file.type.startsWith("image/") ? "image" : "raw",
+              folder: "wordsy-uploads",
+              use_filename: true,
+              unique_filename: true,
+              type: "private",
+            },
+            (error, result) => {
+              if (error) {
+                console.error("Cloudinary upload error:", error);
+                reject(error);
+              } else {
+                resolve(result as CloudinaryUploadResult);
+              }
             }
-          }
-        );
-        uploadStream.end(buffer);
-      });
+          );
+          uploadStream.end(buffer);
+        }
+      );
 
       const result = uploadResult as CloudinaryUploadResult;
 
@@ -89,7 +91,7 @@ export async function POST(request: NextRequest) {
         fileName: file.name,
         size: file.size,
         uploadedAt: new Date(),
-        success: true, 
+        success: true,
       });
     } catch (uploadError) {
       console.error("Upload error:", uploadError);

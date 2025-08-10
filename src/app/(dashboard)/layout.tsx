@@ -1,6 +1,7 @@
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/layout/sidebar/app-sidebar"
 import { cookies } from "next/headers"
+import Header from "@/components/layout/header/header";
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const cookieStore = await cookies();
@@ -8,10 +9,12 @@ export default async function DashboardLayout({ children }: { children: React.Re
   return (
     <SidebarProvider defaultOpen={defaultOpen}>
       <AppSidebar />
-      <main>
-        <SidebarTrigger />
-        {children}
-      </main>
+      <div className="flex flex-col h-screen min-w-full">
+        <Header />
+        <main className="flex items-center justify-center flex-1">
+          {children}
+        </main>
+      </div>
     </SidebarProvider>
   )
 }

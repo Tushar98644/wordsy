@@ -46,7 +46,6 @@ export const SignIn = () => {
               <Input
                 id="email"
                 autoFocus
-                // disabled={}
                 value={''}
                 onChange={() => { }}
                 type="email"
@@ -60,7 +59,6 @@ export const SignIn = () => {
               </div>
               <Input
                 id="password"
-                // disabled={}
                 value={''}
                 placeholder="********"
                 onKeyDown={() => { }}
@@ -72,7 +70,6 @@ export const SignIn = () => {
             <Button
               className="w-full"
               onClick={() => { }}
-            // disabled={}
             >
               {loading ? (
                 <Loader className="size-4 animate-spin ml-1" />

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSessionCookie } from 'better-auth/cookies';
 
-const publicRoutes = ['/sign-in', '/api/v1/memory'];
+const publicRoutes = ['/sign-in'];
 
 export function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
@@ -22,6 +22,6 @@ export function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     "/((?!_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt|api/auth|sign-in|sign-up).*)",
-    '/api/v1/memory', '/sign-in',
+    '/sign-in',
   ],
 };

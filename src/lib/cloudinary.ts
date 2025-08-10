@@ -1,12 +1,14 @@
-import { cloudinary } from "@/config/cloudinary-config";
+import { cloudinary } from "@/config/cloudinary";
 import { UploadApiErrorResponse, UploadApiResponse } from "cloudinary";
 
-type UploadResponse = 
-  { success: true; result?: UploadApiResponse } | 
-  { success: false; error: UploadApiErrorResponse };
+type UploadResponse =
+  | { success: true; result?: UploadApiResponse }
+  | { success: false; error: UploadApiErrorResponse };
 
 export const uploadToCloudinary = (
-  fileUri: string, fileName: string): Promise<UploadResponse> => {
+  fileUri: string,
+  fileName: string
+): Promise<UploadResponse> => {
   return new Promise((resolve, reject) => {
     cloudinary.uploader
       .upload(fileUri, {
