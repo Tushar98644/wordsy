@@ -3,7 +3,6 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { ChevronDown, ChevronUp, MoreHorizontal, Trash } from "lucide-react";
 import {
     SidebarGroupLabel,
@@ -17,7 +16,6 @@ import {
     SidebarMenuAction,
     SidebarMenuButton,
     SidebarMenuSkeleton,
-    SidebarMenuSubItem,
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -33,7 +31,6 @@ type ThreadGroup = {
 const MAX_THREADS_COUNT = 2;
 
 export function AppSidebarThreads() {
-    const router = useRouter();
     const [isExpanded, setIsExpanded] = useState(false);
     const isLoading = false;
 
@@ -146,7 +143,6 @@ export function AppSidebarThreads() {
     const generatingTitleThreadIds = threadList.map((thread: any) => thread.id);
     const currentThreadId = 2;
     const handleDeleteUnarchivedThreads = () => {
-        // archive all threads
     };
 
     return (

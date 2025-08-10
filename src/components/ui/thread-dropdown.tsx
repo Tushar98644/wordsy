@@ -176,7 +176,7 @@ const UpdateThreadNameDialog = ({
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Chat.Thread.renameChat</DialogTitle>
+          <DialogTitle>Rename Chat</DialogTitle>
         </DialogHeader>
         <DialogDescription>
           <Input
@@ -191,11 +191,11 @@ const UpdateThreadNameDialog = ({
 
         <DialogFooter>
           <DialogClose asChild>
-            <Button variant="secondary">Common.cancel</Button>
+            <Button variant="secondary">cancel</Button>
           </DialogClose>
           <DialogClose asChild>
             <Button variant="outline" onClick={() => onUpdated(title)}>
-              Common.update
+              update
             </Button>
           </DialogClose>
         </DialogFooter>

@@ -14,6 +14,8 @@ import Link from "next/link";
 import { PanelLeft } from "lucide-react";
 import { AppSidebarMenus } from "./sidebar-menu";
 import { AppSidebarThreads } from "./sidebar-threads";
+import { AppSidebarUser } from "./sidebar-user";
+import { authClient } from "@/config/auth/client";
 // import { AppSidebarUser } from "./app-sidebar-user";
 
 interface Session {
@@ -27,11 +29,7 @@ interface User {
   image?: string;
 }
 
-export function AppSidebar({
-  session,
-}: { 
-  session?: { session: Session; user: User } 
-}) {
+export function AppSidebar({session}: any) {
   const { setOpenMobile } = useSidebar();
 
   return (
@@ -72,9 +70,9 @@ export function AppSidebar({
           <AppSidebarThreads />
         </div>
       </SidebarContent>
-      
+
       <SidebarFooter className="flex flex-col items-stretch space-y-2">
-        {/* <AppSidebarUser session={session} /> */}
+        <AppSidebarUser session={session} />
       </SidebarFooter>
     </Sidebar>
   );
