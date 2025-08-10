@@ -1,7 +1,9 @@
+import PromptInput from "@/components/input/prompt-input";
+
 const ChatPage = () => {
     return ( 
-        <div>
-            chat
+        <div className="min-w-full">
+            <PromptInput />
         </div>
      );
 }
