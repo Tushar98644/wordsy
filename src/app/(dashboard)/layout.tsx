@@ -16,7 +16,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
       <AppSidebar session={session || undefined} />
       <div className="flex flex-col h-screen w-screen">
         <Header />
-        <main className="flex items-center justify-center flex-1">
+        <main className="flex-1">
           {children}
         </main>
       </div>

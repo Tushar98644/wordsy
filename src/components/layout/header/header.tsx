@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { AudioWaveformIcon, MessageCircleDashed } from "lucide-react";
+import { AnimatedThemeToggler } from "@/components/layout/animated-theme-toggler";
 
 const Header = () => {
    return (
@@ -11,6 +12,7 @@ const Header = () => {
          <SidebarTrigger />
          <div className="flex-1" />
          <div className="flex items-center gap-2">
+            <AnimatedThemeToggler />
             <Tooltip>
                <TooltipTrigger asChild>
                   <Button

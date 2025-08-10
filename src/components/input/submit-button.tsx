@@ -13,7 +13,6 @@ const SubmitButton: React.FC<SubmitButtonProps> = ({
   isLoading,
   disabled
 }) => {
-  // Show button if content is available OR if we're loading (to show loading state)
   if (!isVisible && !isLoading) return null;
 
   const buttonClass = `absolute right-5 bottom-5 ${

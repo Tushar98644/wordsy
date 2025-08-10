@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { Plus, Lightbulb, ChevronDown, CornerRightUp, Mic, Settings, LightbulbIcon } from "lucide-react"
+import { Plus, Lightbulb, CornerRightUp, Mic, Settings, LightbulbIcon } from "lucide-react"
 
 export default function PromptInput () {
     return (
