@@ -6,9 +6,9 @@ import { Plus, Lightbulb, CornerRightUp, Mic, Settings, LightbulbIcon } from "lu
 
 export default function PromptInput () {
     return (
-        <div className="max-w-3xl mx-auto">
+        <div className="min-w-3xl mx-auto">
             <div className="z-10 mx-auto w-full max-w-3xl relative">
-                <div className="flex w-full flex-col px-4">
+                <div className="flex min-w-full flex-col px-4">
                     <div className="shadow-lg overflow-hidden rounded-4xl backdrop-blur-sm bg-muted/60 relative flex w-full flex-col z-10">
                         {/* Input Section */}
                         <div className="flex flex-col gap-3.5 px-5 pt-2 pb-4">
