@@ -1,4 +1,5 @@
-"use client";
+'use client'
+
 import {
   Sidebar,
   SidebarContent,
@@ -11,10 +12,8 @@ import {
 } from "@/components/ui/sidebar";
 import Link from "next/link";
 import { PanelLeft } from "lucide-react";
-
 import { AppSidebarMenus } from "./sidebar-menu";
-// import { AppSidebarAgents } from "./app-sidebar-agents";
-// import { AppSidebarThreads } from "./app-sidebar-threads";
+import { AppSidebarThreads } from "./sidebar-threads";
 // import { AppSidebarUser } from "./app-sidebar-user";
 
 interface Session {
@@ -70,8 +69,7 @@ export function AppSidebar({
       <SidebarContent className="mt-2 overflow-hidden relative">
         <div className="flex flex-col gap-2 overflow-y-auto">
           <AppSidebarMenus />
-          {/* <AppSidebarAgents /> */}
-          {/* <AppSidebarThreads /> */}
+          <AppSidebarThreads />
         </div>
       </SidebarContent>
       
