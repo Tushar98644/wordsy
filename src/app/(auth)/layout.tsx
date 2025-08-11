@@ -18,7 +18,6 @@ export default async function AuthLayout({
                         <p className="text-muted-foreground ">AI powered Conversational Chat Bot</p>
                         <p className="text-muted-foreground"> Built with Vercel AI SDK and Next.js 15</p>
                     </div>
-
                     <div className="w-full lg:w-1/2 p-6 bg-background">{children}</div>
                 </div>
             </div>
