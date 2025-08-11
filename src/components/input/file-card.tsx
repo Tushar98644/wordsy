@@ -1,6 +1,6 @@
 import { X } from "lucide-react";
-import { Button } from "../ui/button";
-import { formatFileSize, getFileDisplayType } from "../../utils/file";
+import { Button } from "@/components/ui/button";
+import { formatFileSize, getFileDisplayType } from "@/utils/file";
 import FilePreview from './file-preview';
 
 interface FileCardProps {

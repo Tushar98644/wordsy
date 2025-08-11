@@ -15,19 +15,6 @@ import { PanelLeft } from "lucide-react";
 import { AppSidebarMenus } from "./sidebar-menu";
 import { AppSidebarThreads } from "./sidebar-threads";
 import { AppSidebarUser } from "./sidebar-user";
-import { authClient } from "@/config/auth/client";
-// import { AppSidebarUser } from "./app-sidebar-user";
-
-interface Session {
-  id: string;
-}
-
-interface User {
-  id: string;
-  name?: string;
-  email?: string;
-  image?: string;
-}
 
 export function AppSidebar({session}: any) {
   const { setOpenMobile } = useSidebar();

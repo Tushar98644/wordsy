@@ -1,6 +1,6 @@
 import React from 'react';
 import { Plus, Shuffle, Mic, AudioLines } from "lucide-react";
-import { Button } from "../ui/button";
+import { Button } from "@/components/ui/button";
 
 interface ChatControlsProps {
   fileInputRef: React.RefObject<HTMLInputElement | null>;

@@ -1,6 +1,6 @@
 import React from 'react';
 import MessageContainer from "@/components/messages/message-container";
-import ChatInput from "@/components/input/chat-input";
+import ChatInput from "@/components/input/prompt-input";
 import { useChatContext } from "@/context/chat-context";
 import { useUIContext } from "@/context/ui-context";
 

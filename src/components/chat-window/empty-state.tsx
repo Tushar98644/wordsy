@@ -1,4 +1,4 @@
-import ChatInput from "@/components/input/chat-input";
+import ChatInput from "@/components/input/prompt-input";
 
 export const EmptyState: React.FC = () => {
   return (

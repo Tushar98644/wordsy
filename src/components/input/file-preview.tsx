@@ -1,5 +1,5 @@
 import { FileText } from "lucide-react";
-import { getFileType } from "../../utils/file";
+import { getFileType } from "@/utils/file";
 import LoadingIndicator from './loading-indicator';
 import Image from "next/image";
 
