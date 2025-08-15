@@ -1,10 +1,9 @@
-import { redirect } from "next/navigation";
+'use client'
 
-const LandingPage = () => {
+export default function page() {
     return (
-        redirect('/dashboard')
-    );
-
+        <div className='flex h-full items-center justify-center'>
+            main page
+        </div>
+    )
 }
-
-export default LandingPage;

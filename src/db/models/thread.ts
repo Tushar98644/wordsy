@@ -17,12 +17,14 @@ export interface IMessage {
 export interface IThread extends Document {
   title: string;
   userEmail: string;
+  archived: boolean;
   messages: IMessage[];
 }
 
 const ThreadSchema = new Schema<IThread>({
   title: { type: String, required: true },
   userEmail: { type: String, required: true, index: true },
+  archived: { type: Boolean, default: false },
   messages: [MessageSchema],
 }, { timestamps: true });
 

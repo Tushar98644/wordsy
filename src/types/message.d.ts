@@ -1,6 +1,7 @@
 import { IFile } from "./file";
 
 export interface Message {
+    _id: string;
     role: 'user' | 'assistant' | 'system';
     content: string;
     timestamp: Date;

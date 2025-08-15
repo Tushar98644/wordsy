@@ -37,7 +37,7 @@ export function AppSidebarThreads() {
     const { data: session } = useSession();
     const userEmail = session?.user?.email;
 
-    const { data: threadList, isLoading } = useFetchThreads(userEmail as string);
+    const { data: threadList, isLoading } = useFetchThreads();
     const { mutate } = useDeleteAllThreads();
 
     const hasExcessThreads = threadList?.length ?? 0 >= MAX_THREADS_COUNT;
@@ -90,7 +90,7 @@ export function AppSidebarThreads() {
                     <SidebarMenu>
                         <SidebarMenuItem>
                             <SidebarGroupLabel>
-                                <h4 className="text-xs text-muted-foreground">recentChats</h4>
+                                <h4 className="text-xs text-muted-foreground">Recent Chats</h4>
                             </SidebarGroupLabel>
                             {Array.from({ length: 12 }).map((_, i) => (
                                 <SidebarMenuSkeleton key={i} />
@@ -109,10 +109,10 @@ export function AppSidebarThreads() {
                     <SidebarMenu>
                         <SidebarMenuItem>
                             <SidebarGroupLabel>
-                                <h4 className="text-xs text-muted-foreground">recentChats</h4>
+                                <h4 className="text-xs text-muted-foreground">Recent Chats</h4>
                             </SidebarGroupLabel>
                             <div className="px-2 py-4 text-center">
-                                <p className="text-sm text-muted-foreground">noConversationsYet</p>
+                                <p className="text-sm text-muted-foreground">No Conversations Yet</p>
                             </div>
                         </SidebarMenuItem>
                     </SidebarMenu>
@@ -122,13 +122,13 @@ export function AppSidebarThreads() {
     }
 
     const handleDeleteAllThreads = () => {
-        mutate(userEmail?? "");
+        mutate();
     };
 
     const generatingTitleThreadIds = threadList.map((thread: any) => thread?._id);
-    const currentThreadId = 2;
     const handleDeleteUnarchivedThreads = () => {
     };
+    const currentThreadId = '2';
 
     return (
         <>
@@ -161,14 +161,14 @@ export function AppSidebarThreads() {
                                                         onClick={handleDeleteAllThreads}
                                                     >
                                                         <Trash />
-                                                        deleteAllChats
+                                                        Delete All Chats
                                                     </DropdownMenuItem>
                                                     <DropdownMenuItem
                                                         variant="destructive"
                                                         onClick={handleDeleteUnarchivedThreads}
                                                     >
                                                         <Trash />
-                                                        deleteUnarchivedChats
+                                                        Delete Unarchived Chats
                                                     </DropdownMenuItem>
                                                 </DropdownMenuContent>
                                             </DropdownMenu>
@@ -190,7 +190,7 @@ export function AppSidebarThreads() {
                                                                 isActive={currentThreadId === thread._id}
                                                             >
                                                                 <Link
-                                                                    href={`/chat/${thread?._id}`}
+                                                                    href={`/threads/${thread?._id}`}
                                                                     className="flex items-center"
                                                                 >
                                                                     {generatingTitleThreadIds.includes(

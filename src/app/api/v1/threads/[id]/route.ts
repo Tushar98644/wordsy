@@ -1,31 +1,33 @@
 import { connectToDB } from "@/db/connect";
 import { Thread } from "@/db/models/thread";
-import { Types } from "mongoose";
+import mongoose, { Types } from "mongoose";
 
 type RouteParams = { params: Promise<{ id: string }> };
 
 export async function GET(request: Request, { params }: RouteParams) {
-      try {
-        await connectToDB();
+  try {
+    await connectToDB();
 
-        const threadId = await params;
-        console.log("[THREADS API] GET threadId:", threadId);
+    const { id } = await params;
+    console.log("[THREADS API] GET threadId:", id);
+    console.log("threadId:", id, "type:", typeof id);
+    const threadId = new mongoose.Types.ObjectId(id);
+    console.log("threadId:", threadId, "type:", typeof threadId);
 
-        if (!threadId) {
-          return Response.json({ error: "Invalid thread id" }, { status: 400 });
-        }
+    if (!threadId) {
+      return Response.json({ error: "Invalid thread id" }, { status: 400 });
+    }
 
-        const thread = await Thread.findById(threadId);
-        if (!thread) {
-          return Response.json({ error: "Thread not found" }, { status: 404 });
-        }
+    const thread = await Thread.findById(threadId);
+    if (!thread) {
+      return Response.json({ error: "Thread not found" }, { status: 404 });
+    }
 
-        return Response.json(thread);
-      }
-      catch (error) {
-        console.error("Error connecting to database:", error);
-        return Response.json({ error: "Failed to connect to database" }, { status: 500 });
-      }
+    return Response.json(thread);
+  } catch (error) {
+    console.error("Error fetching thread:", error);
+    return Response.json({ error: "Failed to fetch thread" }, { status: 500 });
+  }
 }
 
 export async function PUT(request: Request, { params }: RouteParams) {

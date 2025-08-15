@@ -1,12 +1,19 @@
+import { auth } from "@/config/auth/server";
 import { connectToDB } from "@/db/connect";
 import { Thread } from "@/db/models/thread";
+import { headers } from "next/headers";
 
 export async function GET(request: Request) {
   try {
     await connectToDB();
+    
+    const session = await auth.api.getSession({
+      headers: await headers()
+    });
 
-    const { searchParams } = new URL(request.url);
-    const userEmail = searchParams.get("userEmail");
+    if (!session) { return Response.json({ error: "Unauthorized" },{ status: 401 })}
+
+    const userEmail = session?.user?.email;
 
     if (!userEmail) {
       return Response.json(
@@ -58,8 +65,13 @@ export async function DELETE(request: Request) {
   try {
     await connectToDB();
 
-    const { searchParams } = new URL(request.url);
-    const userEmail = searchParams.get("userEmail");
+    const session = await auth.api.getSession({
+      headers: await headers()
+    });
+
+    if (!session) { return Response.json({ error: "Unauthorized" },{ status: 401 })}
+
+    const userEmail = session?.user?.email;
 
     if (!userEmail) {
       return Response.json(
