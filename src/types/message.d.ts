@@ -1,7 +1,6 @@
 import { IFile } from "./file";
 
-export interface IMessage {
-    id: string;
+export interface Message {
     role: 'user' | 'assistant' | 'system';
     content: string;
     timestamp: Date;
@@ -9,7 +8,7 @@ export interface IMessage {
 }
 
 export interface MessageContainerProps {
-    messages: IMessage[];
+    messages: Message[];
     handleEditMessage: (id: string, content: string) => void;
     handleDeleteMessage: (id: string) => void;
     messagesEndRef: React.RefObject<HTMLDivElement | null>;

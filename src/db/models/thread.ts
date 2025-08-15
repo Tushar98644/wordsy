@@ -1,4 +1,4 @@
-import mongoose, { Schema, Document, Types } from 'mongoose';
+import mongoose, { Schema, Document } from 'mongoose';
 import { MessageSchema } from './message';
 
 export interface IFile {
@@ -16,13 +16,13 @@ export interface IMessage {
 
 export interface IThread extends Document {
   title: string;
-  userId: string;
+  userEmail: string;
   messages: IMessage[];
 }
 
 const ThreadSchema = new Schema<IThread>({
   title: { type: String, required: true },
-  userId: { type: String, required: true, index: true },
+  userEmail: { type: String, required: true, index: true },
   messages: [MessageSchema],
 }, { timestamps: true });
 

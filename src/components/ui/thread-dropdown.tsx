@@ -1,4 +1,4 @@
-"use client";
+'use client'
 
 import { PropsWithChildren, useMemo, useState } from "react";
 import { Archive, ChevronRight, Loader, PencilLine, Trash } from "lucide-react";
@@ -28,6 +28,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useDeleteThread } from "@/hooks/queries/useThreadQuery";
 
 type Props = PropsWithChildren<{
   threadId: string;
@@ -61,20 +62,17 @@ export function ThreadDropdown({
   const archiveList = useMockArchives();
 
   const [open, setOpen] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
   const [title, setTitle] = useState(beforeTitle ?? "");
+
+  const { mutate, isPending } = useDeleteThread();
 
   const handleUpdate = (newTitle: string) => {
     setTitle(newTitle);
   };
 
   const handleDelete = () => {
-    setIsDeleting(true);
-    setTimeout(() => {
-      setIsDeleting(false);
-      setOpen(false);
-      onDeleted?.();
-    }, 600);
+    console.log(`[THREADS] Deleting thread from client ${threadId}`);
+    mutate(threadId);
   };
 
   const handleAddToArchive = (archiveId: string) => {
@@ -143,14 +141,14 @@ export function ThreadDropdown({
             <CommandSeparator />
 
             <CommandGroup>
-              <CommandItem disabled={isDeleting} className="cursor-pointer p-0">
+              <CommandItem disabled={isPending} className="cursor-pointer p-0">
                 <div
                   className="flex items-center gap-2 w-full px-2 py-1 rounded"
                   onClick={handleDelete}
                 >
                   <Trash className="text-destructive" />
                   <span className="text-destructive">Delete Chat</span>
-                  {isDeleting && <Loader className="ml-auto h-4 w-4 animate-spin" />}
+                  {isPending && <Loader className="ml-auto h-4 w-4 animate-spin" />}
                 </div>
               </CommandItem>
             </CommandGroup>

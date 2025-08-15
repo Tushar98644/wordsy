@@ -21,7 +21,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { ThreadDropdown } from "@/components/ui/thread-dropdown";
 import { TextShimmer } from "@/components/ui/text-shimmer";
-import { useFetchThreads } from "@/hooks/queries/useThreadQuery";
+import { useDeleteAllThreads, useFetchThreads } from "@/hooks/queries/useThreadQuery";
 import { useSession } from "@/config/auth/client";
 
 type ThreadGroup = {
@@ -35,12 +35,12 @@ export function AppSidebarThreads() {
     const [isExpanded, setIsExpanded] = useState(false);
 
     const { data: session } = useSession();
-    const userId = session?.user?.id;
+    const userEmail = session?.user?.email;
 
-    const { data: threadList, isLoading } = useFetchThreads(userId as string);
-    console.log(threadList);
+    const { data: threadList, isLoading } = useFetchThreads(userEmail as string);
+    const { mutate } = useDeleteAllThreads();
 
-    const hasExcessThreads = threadList?.length >= MAX_THREADS_COUNT;
+    const hasExcessThreads = threadList?.length ?? 0 >= MAX_THREADS_COUNT;
 
     const displayThreadList = useMemo(() => {
         if (!threadList) return [];
@@ -69,8 +69,8 @@ export function AppSidebarThreads() {
 
         for (const thread of displayThreadList) {
             const d =
-                (thread.lastMessageAt
-                    ? new Date(thread.lastMessageAt)
+                (thread?.updatedAt
+                    ? new Date(thread?.updatedAt)
                     : new Date(thread.createdAt)) || new Date();
             d.setHours(0, 0, 0, 0);
 
@@ -122,10 +122,10 @@ export function AppSidebarThreads() {
     }
 
     const handleDeleteAllThreads = () => {
-        // delete all threads
+        mutate(userEmail?? "");
     };
 
-    const generatingTitleThreadIds = threadList.map((thread: any) => thread.id);
+    const generatingTitleThreadIds = threadList.map((thread: any) => thread?._id);
     const currentThreadId = 2;
     const handleDeleteUnarchivedThreads = () => {
     };
@@ -175,11 +175,11 @@ export function AppSidebarThreads() {
                                         )}
                                     </SidebarGroupLabel>
                                     {group.threads.map((thread) => (
-                                        <SidebarMenuSub key={thread._id} className="group/thread mr-0">
+                                        <SidebarMenuSub key={thread?._id} className="group/thread mr-0">
                                             <ThreadDropdown
                                                 side="right"
-                                                threadId={thread.id}
-                                                beforeTitle={thread.title}
+                                                threadId={thread?._id}
+                                                beforeTitle={thread?.title}
                                             >
                                                 <div className="flex items-center data-[state=open]:bg-input! group-hover/thread:bg-input! rounded-lg">
                                                     <Tooltip delayDuration={1000}>
@@ -187,28 +187,28 @@ export function AppSidebarThreads() {
                                                             <SidebarMenuButton
                                                                 asChild
                                                                 className="group-hover/thread:bg-transparent! px-4"
-                                                                isActive={currentThreadId === thread.id}
+                                                                isActive={currentThreadId === thread._id}
                                                             >
                                                                 <Link
-                                                                    href={`/chat/${thread.id}`}
+                                                                    href={`/chat/${thread?._id}`}
                                                                     className="flex items-center"
                                                                 >
                                                                     {generatingTitleThreadIds.includes(
-                                                                        thread.id,
+                                                                        thread?._id,
                                                                     ) ? (
                                                                         <TextShimmer className="truncate min-w-0">
-                                                                            {thread.title || "New Chat"}
+                                                                            {thread?.title || "New Chat"}
                                                                         </TextShimmer>
                                                                     ) : (
                                                                         <p className="truncate min-w-0">
-                                                                            {thread.title || "New Chat"}
+                                                                            {thread?.title || "New Chat"}
                                                                         </p>
                                                                     )}
                                                                 </Link>
                                                             </SidebarMenuButton>
                                                         </TooltipTrigger>
                                                         <TooltipContent className="max-w-[200px] p-4 break-all overflow-y-auto max-h-[200px]">
-                                                            {thread.title || "New Chat"}
+                                                            {thread?.title || "New Chat"}
                                                         </TooltipContent>
                                                     </Tooltip>
                                                     <SidebarMenuAction className="mr-4 data-[state=open]:bg-input data-[state=open]:opacity-100 opacity-0 group-hover/thread:opacity-100">

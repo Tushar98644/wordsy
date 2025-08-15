@@ -1,46 +1,51 @@
 import { connectToDB } from "@/db/connect";
 import { Thread } from "@/db/models/thread";
+import { Types } from "mongoose";
 
+type RouteParams = { params: Promise<{ id: string }> };
 
-export async function GET(request: Request) {
-  try {
-    await connectToDB();
+export async function GET(request: Request, { params }: RouteParams) {
+      try {
+        await connectToDB();
 
-    const { searchParams } = new URL(request.url);
-    const id = searchParams.get("id");
+        const threadId = await params;
+        console.log("[THREADS API] GET threadId:", threadId);
 
-    const thread = await Thread.findById(id);
+        if (!threadId) {
+          return Response.json({ error: "Invalid thread id" }, { status: 400 });
+        }
 
-    if (!thread) {
-      return Response.json({ error: "Thread not found" }, { status: 404 });
-    }
+        const thread = await Thread.findById(threadId);
+        if (!thread) {
+          return Response.json({ error: "Thread not found" }, { status: 404 });
+        }
 
-    return Response.json({ thread });
-  } catch (error) {
-    console.error("Error fetching thread:", error);
-    return Response.json({ error: "Failed to fetch thread" }, { status: 500 });
-  }
+        return Response.json(thread);
+      }
+      catch (error) {
+        console.error("Error connecting to database:", error);
+        return Response.json({ error: "Failed to connect to database" }, { status: 500 });
+      }
 }
 
-export async function PUT(request: Request) {
+export async function PUT(request: Request, { params }: RouteParams) {
   try {
     await connectToDB();
 
-    const { searchParams } = new URL(request.url);
-    const id = searchParams.get("id");
-    
-    if (!id) {
-      return Response.json({ error: "Thread ID is required" }, { status: 400 });
+    const { id: threadId } = await params;
+    console.log("[THREADS API] PUT threadId:", threadId);
+
+    if (!threadId || !Types.ObjectId.isValid(threadId)) {
+      return Response.json({ error: "Invalid thread id" }, { status: 400 });
     }
 
-    const { title } = await request.json();
-
-    if (!title || title.trim() === "") {
+    const body = await request.json();
+    const title = body?.title?.trim();
+    if (!title) {
       return Response.json({ error: "Title is required" }, { status: 400 });
     }
 
-    const thread = await Thread.findByIdAndUpdate(id, { title }, { new: true });
-
+    const thread = await Thread.findByIdAndUpdate(threadId, { title }, { new: true });
     if (!thread) {
       return Response.json({ error: "Thread not found" }, { status: 404 });
     }
@@ -52,24 +57,26 @@ export async function PUT(request: Request) {
   }
 }
 
-export async function DELETE(request: Request) {
+export async function DELETE(request: Request, { params }: RouteParams) {
   try {
     await connectToDB();
 
-    const { searchParams } = new URL(request.url);
-    const id = searchParams.get("id");
+    const {id: threadId } = await params;
+    console.log(`[THREADS API] Deleting thread ${threadId}`);
 
-    if (!id) {
-      return Response.json({ error: "Thread ID is required" }, { status: 400 });
+    if (!threadId || !Types.ObjectId.isValid(threadId)) {
+      return Response.json({ error: "Invalid thread id" }, { status: 400 });
     }
 
-    const thread = await Thread.findByIdAndDelete(id);
-
+    const thread = await Thread.findByIdAndDelete(threadId);
     if (!thread) {
       return Response.json({ error: "Thread not found" }, { status: 404 });
     }
 
-    return Response.json({ message: "Thread deleted successfully" });
+    return Response.json({
+      data: thread,
+      message: "Thread deleted successfully",
+    });
   } catch (error) {
     console.error("Error deleting thread:", error);
     return Response.json({ error: "Failed to delete thread" }, { status: 500 });
