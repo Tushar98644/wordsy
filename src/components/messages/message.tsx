@@ -1,10 +1,10 @@
-import { IMessage } from "@/types/message";
+import type { Message } from "@/types/message";
 import MessageFiles from './message-files';
 import MessageContent from './message-content';
 import MessageActions from './message-action';
 
 interface MessageProps {
-  message: IMessage;
+  message: Message;
   onEdit: (id: string, content: string) => void;
 }
 
@@ -20,7 +20,7 @@ const Message: React.FC<MessageProps> = ({ message, onEdit }) => {
         
         {isUser && (
           <MessageActions
-            messageId={message.id}
+            messageId={message._id}
             messageContent={message.content}
             onEdit={onEdit}
           />

@@ -1,8 +1,8 @@
 import { useMemo } from 'react';
-import { IMessage } from '@/types/message';
+import type { Message } from '@/types/message';
 
 interface UseMessageContainerProps {
-  messages: IMessage[];
+  messages: Message[];
 }
 
 export const useMessageContainer = ({ messages }: UseMessageContainerProps) => {

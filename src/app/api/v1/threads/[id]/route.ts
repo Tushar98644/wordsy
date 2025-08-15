@@ -63,7 +63,7 @@ export async function DELETE(request: Request, { params }: RouteParams) {
   try {
     await connectToDB();
 
-    const {id: threadId } = await params;
+    const { id: threadId } = await params;
     console.log(`[THREADS API] Deleting thread ${threadId}`);
 
     if (!threadId || !Types.ObjectId.isValid(threadId)) {

@@ -15,7 +15,7 @@ const MessageContainer: React.FC<MessageContainerProps> = ({
       <div className="max-w-3xl mx-auto flex flex-col space-y-4">
         {processedMessages.map((message) => (
           <Message
-            key={message.id}
+            key={message._id}
             message={message}
             onEdit={handleEditMessage}
           />
