@@ -43,16 +43,18 @@ export async function PUT(request: Request, { params }: RouteParams) {
 
     const body = await request.json();
     const title = body?.title?.trim();
+
     if (!title) {
       return Response.json({ error: "Title is required" }, { status: 400 });
     }
 
     const thread = await Thread.findByIdAndUpdate(threadId, { title }, { new: true });
+    
     if (!thread) {
       return Response.json({ error: "Thread not found" }, { status: 404 });
     }
 
-    return Response.json({ thread });
+    return Response.json(thread, { status: 200 });
   } catch (error) {
     console.error("Error updating thread:", error);
     return Response.json({ error: "Failed to update thread" }, { status: 500 });
@@ -78,6 +80,7 @@ export async function DELETE(request: Request, { params }: RouteParams) {
     return Response.json({
       data: thread,
       message: "Thread deleted successfully",
+      status: 200
     });
   } catch (error) {
     console.error("Error deleting thread:", error);

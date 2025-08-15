@@ -28,7 +28,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useDeleteThread } from "@/hooks/queries/useThreadQuery";
+import { useDeleteThread, useEditThread } from "@/hooks/queries/useThreadQuery";
 
 type Props = PropsWithChildren<{
   threadId: string;
@@ -64,19 +64,19 @@ export function ThreadDropdown({
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState(beforeTitle ?? "");
 
-  const { mutate, isPending } = useDeleteThread();
+  const { mutate: deleteThread, isPending } = useDeleteThread();
+  const { mutate: editThread } = useEditThread();
 
   const handleUpdate = (newTitle: string) => {
-    setTitle(newTitle);
+      editThread({threadId, newTitle});
   };
 
   const handleDelete = () => {
-    console.log(`[THREADS] Deleting thread from client ${threadId}`);
-    mutate(threadId);
+    deleteThread(threadId);
   };
 
   const handleAddToArchive = (archiveId: string) => {
-    setOpen(false);
+    setOpen(true);
   };
 
   return (

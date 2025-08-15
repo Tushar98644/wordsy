@@ -9,11 +9,23 @@ export const useFetchThreads = () => {
   });
 };
 
-export const useFetchThread = (threadId: any) => {
+export const useFetchThread = (threadId: string) => {
   return useQuery({
     queryKey: ["thread", threadId],
     queryFn: () => threadService.getThread(threadId),
     staleTime: 1000 * 60 * 5,
+  });
+}
+
+export const useEditThread = () => {
+  const queryClient =  useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ threadId, newTitle }: { threadId: string; newTitle: string }) => 
+    threadService.editThread(threadId, newTitle),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["threads"] });
+    },
   });
 }
 
