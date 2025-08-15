@@ -1,4 +1,3 @@
-import { NextRequest, NextResponse } from "next/server";
 import { cloudinary } from "@/config/cloudinary";
 
 interface CloudinaryUploadResult {
@@ -6,18 +5,18 @@ interface CloudinaryUploadResult {
   [key: string]: any;
 }
 
-export async function POST(request: NextRequest) {
+export async function POST(request: Request) {
   try {
     const formData = await request.formData();
     const file = formData.get("file") as File;
 
     if (!file) {
-      return NextResponse.json({ error: "No file provided" }, { status: 400 });
+      return Response.json({ error: "No file provided" }, { status: 400 });
     }
 
     const maxSize = 2 * 1024 * 1024;
     if (file.size > maxSize) {
-      return NextResponse.json(
+      return Response.json(
         { error: "File too large. Maximum size is 2MB." },
         { status: 400 }
       );
@@ -36,7 +35,7 @@ export async function POST(request: NextRequest) {
     ];
 
     if (!supportedTypes.includes(file.type)) {
-      return NextResponse.json(
+      return Response.json(
         {
           error:
             "Unsupported file type. Supported types: images, text files, PDF, DOCX",
@@ -84,7 +83,7 @@ export async function POST(request: NextRequest) {
 
       const result = uploadResult as CloudinaryUploadResult;
 
-      return NextResponse.json({
+      return Response.json({
         fileUrl: result.secure_url,
         fileId: result.public_id,
         mimeType: file.type,
@@ -95,7 +94,7 @@ export async function POST(request: NextRequest) {
       });
     } catch (uploadError) {
       console.error("Upload error:", uploadError);
-      return NextResponse.json(
+      return Response.json(
         {
           error: "Failed to upload file",
           details:
@@ -108,7 +107,7 @@ export async function POST(request: NextRequest) {
     }
   } catch (error) {
     console.error("API error:", error);
-    return NextResponse.json(
+    return Response.json(
       {
         error: "Internal server error",
         details: error instanceof Error ? error.message : "Unknown error",

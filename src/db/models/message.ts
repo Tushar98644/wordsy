@@ -7,7 +7,7 @@ const FileSchema = new Schema({
   size: Number
 }, { timestamps: true });
 
-const MessageSchema = new Schema({
+export const MessageSchema = new Schema({
   role: String,
   content: mongoose.Schema.Types.Mixed,
   files: [FileSchema],

@@ -1,5 +1,5 @@
 import mongoose, { Schema, Document, Types } from 'mongoose';
-import { Message } from './message';
+import { MessageSchema } from './message';
 
 export interface IFile {
   fileName: string;
@@ -23,7 +23,7 @@ export interface IThread extends Document {
 const ThreadSchema = new Schema<IThread>({
   title: { type: String, required: true },
   userId: { type: Schema.Types.ObjectId, required: true, index: true },
-  messages: [Message],
+  messages: [MessageSchema],
 }, { timestamps: true });
 
 export const Thread = mongoose.models.Thread || mongoose.model<IThread>('Thread', ThreadSchema);
