@@ -3,6 +3,7 @@ import { auth } from "@/config/auth/server";
 import { AppSidebar } from "@/components/layout/sidebar/app-sidebar";
 import Header from "@/components/layout/header/header";
 import { SidebarProvider } from "@/components/ui/sidebar";
+import { BackgroundBeams } from "../ui/background-beam";
 
 const AppLayout = async ({ children }: { children: React.ReactNode }) => {
     const cookieStore = await cookies();
@@ -16,7 +17,8 @@ const AppLayout = async ({ children }: { children: React.ReactNode }) => {
             <div className="flex flex-col min-h-screen w-full">
                 { session && <Header /> }
                 <main className="flex-1 flex flex-col overflow-hidden">
-                    {children}
+                    <div className="z-10 h-full bg-transparent">{children}</div>
+                    <BackgroundBeams />
                 </main>
             </div>
         </SidebarProvider>

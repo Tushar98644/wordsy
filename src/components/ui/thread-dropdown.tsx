@@ -68,7 +68,12 @@ export function ThreadDropdown({
   const { mutate: editThread } = useEditThread();
 
   const handleUpdate = (newTitle: string) => {
-      editThread({threadId, newTitle});
+      editThread({threadId, newTitle}, {
+        onSuccess: () => {
+          setOpen(false);
+          setTitle(newTitle);
+        }
+      });
   };
 
   const handleDelete = () => {
