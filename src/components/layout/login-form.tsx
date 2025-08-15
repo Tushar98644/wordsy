@@ -1,4 +1,4 @@
-"use client";
+'use client'
 
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -11,7 +11,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-
 import { Loader } from "lucide-react";
 import { signIn } from "@/config/auth/client";
 import { toast } from "sonner";
@@ -104,10 +103,11 @@ export const SignIn = () => {
             </div>
           </>
           <div className="my-8 text-center text-sm text-muted-foreground">
-            Don&apos;t have an account?
-            <Link href="/sign-up" className="underline-offset-4 text-primary">
-              Sign Up
+            This project is open source and licensed under the {" "}
+            <Link href="/https://github.com/Tushar98644/wordsy/blob/main/LICENSE" className="underline text-primary">
+              GNU {" "}
             </Link>
+            license
           </div>
         </CardContent>
       </Card>

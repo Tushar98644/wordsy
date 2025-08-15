@@ -82,7 +82,6 @@ export async function DELETE(request: Request) {
 
     const threads = await Thread.deleteMany({ userEmail });
 
-    console.log(`[THREADS] Deleted ${threads.deletedCount} threads for user ${userEmail}`);
     return Response.json({ message: "Threads deleted successfully" });
   } catch (error) {
     console.error("Error deleting threads:", error);

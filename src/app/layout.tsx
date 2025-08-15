@@ -1,14 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import ThemeProvider from "@/providers/theme-provider";
 import AppLayout from "@/components/layout/app-layout";
-import { cookies, headers } from "next/headers";
-import { auth } from "@/config/auth/server";
-import { AppSidebar } from "@/components/layout/sidebar/app-sidebar";
-import Header from "@/components/layout/header/header";
-import { SidebarProvider } from "@/components/ui/sidebar";
-import { BackgroundBeams } from "@/components/ui/background-beam";
+import { AppProvider } from "@/providers";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -30,27 +24,14 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode
 }>) {
-
-  const cookieStore = await cookies();
-  const defaultOpen = cookieStore.get("sidebar_state")?.value === "true"
-  const session = await auth.api.getSession({
-    headers: await headers()
-  })
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`} suppressHydrationWarning>
-        <AppLayout>
-          <SidebarProvider defaultOpen={defaultOpen}>
-            <AppSidebar session={session || undefined} />
-            <div className="flex flex-col min-h-screen w-full">
-              <Header />
-              <main className="flex-1 flex flex-col overflow-hidden">
-                {children}
-                <BackgroundBeams />
-              </main>
-            </div>
-          </SidebarProvider>
-        </AppLayout>
+        <AppProvider>
+          <AppLayout>
+            {children}
+          </AppLayout>
+        </AppProvider>
       </body>
     </html>
   )

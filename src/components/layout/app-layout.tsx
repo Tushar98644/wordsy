@@ -1,18 +1,25 @@
-'use client'
-
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { ThemeProvider } from "next-themes";
-import { SidebarProvider } from "@/components/ui/sidebar";
+import { cookies, headers } from "next/headers";
+import { auth } from "@/config/auth/server";
 import { AppSidebar } from "@/components/layout/sidebar/app-sidebar";
+import Header from "@/components/layout/header/header";
+import { SidebarProvider } from "@/components/ui/sidebar";
 
-const AppLayout = ({ children }: { children: React.ReactNode }) => {
-    const queryClient = new QueryClient();
+const AppLayout = async ({ children }: { children: React.ReactNode }) => {
+    const cookieStore = await cookies();
+    const defaultOpen = cookieStore.get("sidebar_state")?.value === "true"
+    const session = await auth.api.getSession({
+        headers: await headers()
+    })
     return (
-        <QueryClientProvider client={queryClient}>
-            <ThemeProvider attribute="class" defaultTheme="dark">
+        <SidebarProvider defaultOpen={defaultOpen}>
+            <AppSidebar session={session || undefined} />
+            <div className="flex flex-col min-h-screen w-full">
+                { session && <Header /> }
+                <main className="flex-1 flex flex-col overflow-hidden">
                     {children}
-            </ThemeProvider>
-        </QueryClientProvider>
+                </main>
+            </div>
+        </SidebarProvider>
     );
 }
 

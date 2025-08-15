@@ -22,7 +22,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { ThreadDropdown } from "@/components/ui/thread-dropdown";
 import { TextShimmer } from "@/components/ui/text-shimmer";
 import { useDeleteAllThreads, useFetchThreads } from "@/hooks/queries/useThreadQuery";
-import { useSession } from "@/config/auth/client";
+import { Thread } from "@/types/thread";
 
 type ThreadGroup = {
     label: string;
@@ -34,9 +34,6 @@ const MAX_THREADS_COUNT = 2;
 export function AppSidebarThreads() {
     const [isExpanded, setIsExpanded] = useState(false);
 
-    const { data: session } = useSession();
-    const userEmail = session?.user?.email;
-
     const { data: threadList, isLoading } = useFetchThreads();
     const { mutate } = useDeleteAllThreads();
 
@@ -44,7 +41,7 @@ export function AppSidebarThreads() {
 
     const displayThreadList = useMemo(() => {
         if (!threadList) return [];
-        if (!isExpanded && hasExcessThreads) return threadList.slice(0, MAX_THREADS_COUNT);
+        if (!isExpanded && hasExcessThreads) return threadList?.slice(0, MAX_THREADS_COUNT);
         return threadList;
     }, [threadList, hasExcessThreads, isExpanded]);
 
@@ -69,8 +66,8 @@ export function AppSidebarThreads() {
 
         for (const thread of displayThreadList) {
             const d =
-                (thread?.updatedAt
-                    ? new Date(thread?.updatedAt)
+                (thread?.createdAt
+                    ? new Date(thread?.createdAt)
                     : new Date(thread.createdAt)) || new Date();
             d.setHours(0, 0, 0, 0);
 
@@ -125,7 +122,6 @@ export function AppSidebarThreads() {
         mutate();
     };
 
-    const generatingTitleThreadIds = threadList.map((thread: any) => thread?._id);
     const handleDeleteUnarchivedThreads = () => {
     };
     const currentThreadId = '2';
@@ -174,7 +170,7 @@ export function AppSidebarThreads() {
                                             </DropdownMenu>
                                         )}
                                     </SidebarGroupLabel>
-                                    {group.threads.map((thread) => (
+                                    {group?.threads?.map((thread:Thread) => (
                                         <SidebarMenuSub key={thread?._id} className="group/thread mr-0">
                                             <ThreadDropdown
                                                 side="right"
@@ -193,17 +189,9 @@ export function AppSidebarThreads() {
                                                                     href={`/threads/${thread?._id}`}
                                                                     className="flex items-center"
                                                                 >
-                                                                    {generatingTitleThreadIds.includes(
-                                                                        thread?._id,
-                                                                    ) ? (
                                                                         <TextShimmer className="truncate min-w-0">
                                                                             {thread?.title || "New Chat"}
                                                                         </TextShimmer>
-                                                                    ) : (
-                                                                        <p className="truncate min-w-0">
-                                                                            {thread?.title || "New Chat"}
-                                                                        </p>
-                                                                    )}
                                                                 </Link>
                                                             </SidebarMenuButton>
                                                         </TooltipTrigger>
