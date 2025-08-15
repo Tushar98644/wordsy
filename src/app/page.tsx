@@ -1,8 +1,8 @@
+import { redirect } from "next/navigation";
+
 const LandingPage = () => {
     return (
-        <div>
-            landing page
-        </div>
+        redirect('/dashboard')
     );
 
 }

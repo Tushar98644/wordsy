@@ -1,6 +1,6 @@
 import { gemini } from "@/config/gemini";
 import { convertToCoreMessages, streamText } from "ai";
-import { Chat } from "@/db/models/chat";
+import { Thread } from "@/db/models/thread";
 import { connectToDB } from "@/db/connect";
 import { nanoid } from "nanoid";
 import axios from "axios";
@@ -161,10 +161,10 @@ export async function POST(req: Request) {
         timestamp: new Date(),
       };
 
-      console.log("[DB] Saving messages to chat:", chatId);
+      console.log("[DB] Saving messages to thread:", chatId);
 
       try {
-        const updatedChat = await Chat.findByIdAndUpdate(
+        const updatedChat = await Thread.findByIdAndUpdate(
           chatId,
           {
             $push: { messages: { $each: [userMessage, assistantMessage] } },
@@ -172,13 +172,13 @@ export async function POST(req: Request) {
           },
           { new: true }
         );
-        console.log("[DB] Chat updated successfully ✅");
+        console.log("[DB] Thread updated successfully ✅");
         console.log(
           "[DB] Last user message saved:",
           updatedChat.messages[updatedChat.messages.length - 2]
         );
       } catch (dbError) {
-        console.error("[DB] Error updating chat:", dbError);
+        console.error("[DB] Error updating thread:", dbError);
       }
     }
 
@@ -253,7 +253,7 @@ export async function POST(req: Request) {
       },
     });
   } catch (e) {
-    console.error("[ERROR] Chat API failed:", e);
+    console.error("[ERROR] Thread API failed:", e);
     return new Response(JSON.stringify({ error: (e as Error).message }), {
       status: 500,
     });

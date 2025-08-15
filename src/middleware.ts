@@ -8,7 +8,7 @@ export function middleware(request: NextRequest) {
   const sessionCookie = getSessionCookie(request);
 
   if (sessionCookie && publicRoutes.some(route => pathname.startsWith(route))) {
-    return NextResponse.redirect(new URL('/', request.url));
+    return NextResponse.redirect(new URL('/dashboard', request.url));
   }
 
   const isPublic = publicRoutes.some(route => pathname.startsWith(route));

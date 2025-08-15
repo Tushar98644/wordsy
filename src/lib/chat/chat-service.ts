@@ -1,6 +1,6 @@
 import { gemini } from "@/config/gemini";
 import { convertToCoreMessages, streamText } from "ai";
-import { Chat } from "@/db/models/chat";
+import { Chat } from "@/db/models/thread";
 import { nanoid } from "nanoid";
 import { MemoryService } from "./memory-service";
 import { ChatMessage } from "@/types/chat";
