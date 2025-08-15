@@ -16,13 +16,13 @@ export interface IMessage {
 
 export interface IThread extends Document {
   title: string;
-  userId: Types.ObjectId;
+  userId: string;
   messages: IMessage[];
 }
 
 const ThreadSchema = new Schema<IThread>({
   title: { type: String, required: true },
-  userId: { type: Schema.Types.ObjectId, required: true, index: true },
+  userId: { type: String, required: true, index: true },
   messages: [MessageSchema],
 }, { timestamps: true });
 

@@ -16,8 +16,8 @@ import {
   LogOutIcon,
   Settings2,
 } from "lucide-react";
-import { authClient } from "@/config/auth/client";
-import useSWR from "swr";
+import { getSession, signOut } from "@/config/auth/client";
+import useSWR from "swr"; 
 
 export function AppSidebarUser({
   session,
@@ -25,7 +25,7 @@ export function AppSidebarUser({
   const user = session?.user;
 
   const logout = () => {
-    authClient.signOut().finally(() => {
+    signOut().finally(() => {
       window.location.href = "/sign-in";
     });
   };
@@ -33,7 +33,7 @@ export function AppSidebarUser({
   useSWR(
     "/session-update",
     () =>
-      authClient.getSession().then(() => {
+      getSession().then(() => {
         console.log(`session-update: ${new Date().toISOString()}`);
       }),
     {

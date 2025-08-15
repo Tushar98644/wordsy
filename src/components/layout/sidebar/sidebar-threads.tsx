@@ -1,5 +1,4 @@
-/* eslint-disable react-hooks/exhaustive-deps */
-"use client";
+'use client'
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
@@ -22,6 +21,8 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { ThreadDropdown } from "@/components/ui/thread-dropdown";
 import { TextShimmer } from "@/components/ui/text-shimmer";
+import { useFetchThreads } from "@/hooks/queries/useThreadQuery";
+import { useSession } from "@/config/auth/client";
 
 type ThreadGroup = {
     label: string;
@@ -32,30 +33,14 @@ const MAX_THREADS_COUNT = 2;
 
 export function AppSidebarThreads() {
     const [isExpanded, setIsExpanded] = useState(false);
-    const isLoading = false;
 
-    const threadList: any = [
-        {
-            id: "1",
-            title: "Thread 1",
-            lastMessage: "Message 1",
-            lastMessageAt: "2023-01-01",
-        },
-        {
-            id: "2",
-            title: "Thread 2",
-            lastMessage: "Message 2",
-            lastMessageAt: "2023-01-02",
-        },
-        {
-            id: "3",
-            title: "Thread 3",
-            lastMessage: "Message 3",
-            lastMessageAt: "2023-01-03",
-        },
-    ];
+    const { data: session } = useSession();
+    const userId = session?.user?.id;
 
-    const hasExcessThreads = threadList.length >= MAX_THREADS_COUNT;
+    const { data: threadList, isLoading } = useFetchThreads(userId as string);
+    console.log(threadList);
+
+    const hasExcessThreads = threadList?.length >= MAX_THREADS_COUNT;
 
     const displayThreadList = useMemo(() => {
         if (!threadList) return [];
@@ -98,7 +83,7 @@ export function AppSidebarThreads() {
         return buckets.filter((g) => g.threads.length > 0);
     }, [displayThreadList]);
 
-    if (isLoading) {
+    if (isLoading || !threadList) {
         return (
             <SidebarGroup>
                 <SidebarGroupContent className="group-data-[collapsible=icon]:hidden group/threads">
@@ -190,7 +175,7 @@ export function AppSidebarThreads() {
                                         )}
                                     </SidebarGroupLabel>
                                     {group.threads.map((thread) => (
-                                        <SidebarMenuSub key={thread.id} className="group/thread mr-0">
+                                        <SidebarMenuSub key={thread._id} className="group/thread mr-0">
                                             <ThreadDropdown
                                                 side="right"
                                                 threadId={thread.id}

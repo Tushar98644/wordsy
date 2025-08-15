@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/card";
 
 import { Loader } from "lucide-react";
-import { authClient } from "@/config/auth/client";
+import { signIn } from "@/config/auth/client";
 import { toast } from "sonner";
 import { GithubIcon } from "@/components/ui/github-icon";
 import { GoogleIcon } from "@/components/ui/google-icon";
@@ -21,7 +21,7 @@ import { GoogleIcon } from "@/components/ui/google-icon";
 export const SignIn = () => {
 
   const handleSocialSignIn = (provider: "google" | "github") => {
-    authClient.signIn.social({ provider }).catch((e: any) => {
+    signIn.social({ provider }).catch((e: any) => {
       toast.error(e.error);
     });
   };

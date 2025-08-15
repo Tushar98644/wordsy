@@ -15,17 +15,18 @@ export async function GET(request: NextRequest) {
         { status: 400 }
       );
     }
-
-    const chats = await Thread.find({ userId })
+    
+    const threads = await Thread.find({ userId })
       .select("_id title createdAt updatedAt")
       .sort({ updatedAt: -1 })
       .limit(50);
 
-    return NextResponse.json({ chats });
+    console.log(`[THREADS] Fetched ${threads.length} threads for user ${userId}`);
+    return NextResponse.json(threads);
   } catch (error) {
-    console.error("Error fetching chats:", error);
+    console.error("Error fetching thread:", error);
     return NextResponse.json(
-      { error: "Failed to fetch chats" },
+      { error: "Failed to fetch thread" },
       { status: 500 }
     );
   }
