@@ -12,6 +12,11 @@ class ThreadService {
         return res.data;
     }
 
+    public async createThread(title: string): Promise<Thread> {
+        const res = await axios.post('/api/v1/threads', { title });
+        return res.data;
+    }
+
     public async editThread(threadId: string, title: string): Promise<Thread> {
         const res = await axios.put(`/api/v1/threads/${threadId}`, { title });
         return res.data;

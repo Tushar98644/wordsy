@@ -4,8 +4,9 @@ import { Sparkles, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { TypewriterEffectSmooth } from "@/components/ui/typewriter-effect";
 import { TextGenerateEffect } from "@/components/ui/text-generate-effect";
+import { useCreateThread } from "@/hooks/queries/useThreadQuery";
 
-const MainContent = ({ session }: any) => {
+const MainContent = () => {
     const words = [
         {
             text: "Welcome",
@@ -32,31 +33,19 @@ const MainContent = ({ session }: any) => {
         },
     ];
 
-    const suggestedPrompts = [
-        {
-            title: "Professional Writing",
-            description: "Help me write a professional email",
-            icon: "📝"
-        },
-        {
-            title: "Learning & Education",
-            description: "Explain quantum computing simply",
-            icon: "🧠"
-        },
-        {
-            title: "Health & Fitness",
-            description: "Create a workout plan for beginners",
-            icon: "💪"
-        },
-        {
-            title: "Cooking & Recipes",
-            description: "Suggest a recipe for dinner tonight",
-            icon: "🍳"
-        }
-    ];
-
     const desc = `Your intelligent assistant ready to help with writing, learning, creativity, and more.
                 What would you like to explore today?`
+
+    
+    const { mutate: createThread } = useCreateThread();    
+
+    const handleNewChat = () => {
+        createThread("New Chat",{
+            onSuccess: (data) => {
+                window.location.href = `/threads/${data._id}`;
+            }
+        });
+    }
 
     return (
         <div className="flex flex-col h-full items-center justify-center">
@@ -87,7 +76,7 @@ const MainContent = ({ session }: any) => {
                             size="lg"
                             className="group relative overflow-hidden rounded-full px-8 py-6 text-base font-medium shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
                             onClick={() => {
-                                // Handle start new conversation
+                                handleNewChat();
                                 console.log("Start new conversation");
                             }}
                         >

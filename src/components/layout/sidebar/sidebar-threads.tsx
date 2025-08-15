@@ -35,7 +35,7 @@ export function AppSidebarThreads() {
     const [isExpanded, setIsExpanded] = useState(false);
 
     const { data: threadList, isLoading } = useFetchThreads();
-    const { mutate } = useDeleteAllThreads();
+    const { mutate: deleteAllThreads } = useDeleteAllThreads();
 
     const hasExcessThreads = threadList?.length ?? 0 >= MAX_THREADS_COUNT;
 
@@ -119,7 +119,7 @@ export function AppSidebarThreads() {
     }
 
     const handleDeleteAllThreads = () => {
-        mutate();
+        deleteAllThreads();
     };
 
     const handleDeleteUnarchivedThreads = () => {

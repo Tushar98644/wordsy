@@ -41,10 +41,18 @@ export async function POST(request: Request) {
   try {
     await connectToDB();
 
-    const { title, userEmail } = await request.json();
+    const session = await auth.api.getSession({
+      headers: await headers()
+    });
+
+    if (!session) { return Response.json({ error: "Unauthorized" },{ status: 401 })}
+
+    const userEmail = session?.user?.email;
+
+    const { title } = await request.json();
     if (!title || !userEmail) {
       return Response.json(
-        { error: "Title and user ID are required" },
+        { error: "Title and user email are required" },
         { status: 400 }
       );
     }

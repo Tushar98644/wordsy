@@ -17,6 +17,17 @@ export const useFetchThread = (threadId: string) => {
   });
 }
 
+export const useCreateThread = () => {
+  const queryClient =  useQueryClient();
+
+  return useMutation({
+    mutationFn: (title: string) => threadService.createThread(title),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["threads"] });
+    },
+  });
+}
+
 export const useEditThread = () => {
   const queryClient =  useQueryClient();
 
