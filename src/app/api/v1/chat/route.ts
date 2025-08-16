@@ -8,10 +8,8 @@ import axios from "axios";
 export async function POST(req: Request) {
   try {
     await connectToDB();
-    console.log("[CHAT] Connected to DB ✅");
 
-    const { messages, fileUrl, fileMetadata, chatId, userId } =
-      await req.json();
+    const { messages, fileUrl, fileMetadata, chatId, userId } = await req.json();
     console.log("[CHAT] Request Body:", {
       userId,
       chatId,
@@ -27,8 +25,7 @@ export async function POST(req: Request) {
 
     if (userId && lastUserMessage?.content) {
       try {
-        const query =
-          typeof lastUserMessage.content === "string"
+        const query = typeof lastUserMessage.content === "string"
             ? lastUserMessage.content
             : lastUserMessage.content.find(
                 (c: { type: string }) => c.type === "text"
@@ -60,7 +57,6 @@ export async function POST(req: Request) {
     let fileAttachment = null;
     let enhancedUserMessage = null;
 
-    // Handle file attachment
     if (fileUrl && fileMetadata && messages.length > 0) {
       fileAttachment = {
         fileId: fileMetadata.fileId || nanoid(),
@@ -76,7 +72,6 @@ export async function POST(req: Request) {
       if (last.role === "user") {
         const isImage = /\.(jpg|jpeg|png|gif|webp|bmp)$/i.test(fileUrl);
 
-        // Create enhanced message for AI processing
         enhancedUserMessage = {
           role: "user",
           content: [
@@ -100,7 +95,6 @@ export async function POST(req: Request) {
       }
     }
 
-    // Trim context
     const maxContextLength = 100000;
     let count = 0;
     const filtered: typeof enhanced = [];
@@ -140,25 +134,20 @@ export async function POST(req: Request) {
     }
     const responseText = chunks.join("");
 
-    // Save to database
     if (chatId && userId) {
       const originalUserMessage = messages[messages.length - 1];
 
       const userMessage = {
-        id: nanoid(),
         role: "user",
         content: originalUserMessage.content,
-        timestamp: new Date(),
         ...(fileAttachment && { files: [fileAttachment] }),
       };
 
       console.log("[USER MESSAGE] User message for DB:", userMessage);
 
       const assistantMessage = {
-        id: nanoid(),
         role: "assistant",
         content: responseText,
-        timestamp: new Date(),
       };
 
       console.log("[DB] Saving messages to thread:", chatId);
@@ -168,7 +157,6 @@ export async function POST(req: Request) {
           chatId,
           {
             $push: { messages: { $each: [userMessage, assistantMessage] } },
-            $set: { updatedAt: new Date() },
           },
           { new: true }
         );
@@ -183,8 +171,7 @@ export async function POST(req: Request) {
     }
 
     if (userId) {
-      const userContent =
-        typeof lastUserMessage.content === "string"
+      const userContent = typeof lastUserMessage.content === "string"
           ? lastUserMessage.content
           : lastUserMessage.content.find(
               (c: { type: string }) => c.type === "text"

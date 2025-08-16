@@ -1523,3 +1523,7 @@
     animation: none;
     mix-blend-mode: normal;
 }
+
+::-webkit-scrollbar {
+  display: none;
+}

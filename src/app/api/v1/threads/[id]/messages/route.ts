@@ -1,9 +1,13 @@
 import { Thread } from "@/db/models/thread";
 import { connectToDB } from "@/db/connect";
 
-export async function POST(request: Request) {
+type RouteParams = { params: Promise<{ id: string }> }
+
+export async function POST(request: Request, { params }: RouteParams) {
   try {
     await connectToDB();
+    
+    const { id: threadId } = await params;
 
     const { message } = await request.json();
 
@@ -13,15 +17,12 @@ export async function POST(request: Request) {
         { status: 400 }
       );
     }
-
-    const { searchParams } = new URL(request.url);
-    const threadId = searchParams.get("threadId");
-
+    
     const thread = await Thread.findById(threadId);
     if (!thread) {
       return Response.json({ error: "Thread not found" }, { status: 404 });
     }
-
+    
     thread.messages.push({ ...message });
     await thread.save();
 

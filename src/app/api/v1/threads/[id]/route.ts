@@ -8,11 +8,7 @@ export async function GET(request: Request, { params }: RouteParams) {
   try {
     await connectToDB();
 
-    const { id } = await params;
-    console.log("[THREADS API] GET threadId:", id);
-    console.log("threadId:", id, "type:", typeof id);
-    const threadId = new mongoose.Types.ObjectId(id);
-    console.log("threadId:", threadId, "type:", typeof threadId);
+    const { id: threadId } = await params;
 
     if (!threadId) {
       return Response.json({ error: "Invalid thread id" }, { status: 400 });
@@ -35,7 +31,6 @@ export async function PUT(request: Request, { params }: RouteParams) {
     await connectToDB();
 
     const { id: threadId } = await params;
-    console.log("[THREADS API] PUT threadId:", threadId);
 
     if (!threadId || !Types.ObjectId.isValid(threadId)) {
       return Response.json({ error: "Invalid thread id" }, { status: 400 });

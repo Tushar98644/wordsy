@@ -4,7 +4,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger, DropdownMenuItem } from "@/components/ui/dropdown-menu"
 import { Plus, Lightbulb, CornerRightUp, Mic, Settings, LightbulbIcon, ChevronDown } from "lucide-react"
 
-export default function PromptInput() {
+export default function PromptInput({ onSendMessage }: { onSendMessage: (message: string) => void }) {
     return (
         <div className="w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="relative w-full">
@@ -56,6 +56,12 @@ export default function PromptInput() {
                                 <input
                                     placeholder="Ask anything..."
                                     className="min-h-[3rem] sm:min-h-[2rem] px-2 w-full outline-none border-none resize-none text-base"
+                                    onKeyDown={(e) => {
+                                        if (e.key === "Enter") {
+                                            onSendMessage(e.currentTarget.value);
+                                            e.currentTarget.value = "";
+                                        }
+                                    }}
                                 />
                             </div>
 
