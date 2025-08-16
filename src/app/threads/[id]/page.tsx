@@ -1,4 +1,4 @@
-'use client';
+'use client'
 
 import { useParams } from 'next/navigation';
 import { useFetchThread } from '@/hooks/queries/useThreadQuery';
