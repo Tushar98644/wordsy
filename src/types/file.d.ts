@@ -1,15 +1,9 @@
-export interface FileMetadata {
-    fileId: string;
-    fileName: string;
-    mimeType: string;
-    size: number;
-}
-
-export interface IFile {
-    fileId: string;
+export interface File {
+    _id: string;
     fileName: string;
     fileUrl: string;
     mimeType: string;
     size: number;
-    uploadedAt: Date;
+    createdAt: Date;
+    updatedAt: Date;
 }

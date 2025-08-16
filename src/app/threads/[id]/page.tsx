@@ -7,6 +7,7 @@ import { useChat } from '@ai-sdk/react';
 import { DefaultChatTransport } from 'ai';
 import { toUIMessages } from '@/utils/convertMessage';
 import { useMemo, useEffect } from 'react';
+import { useAutoScroll } from '@/hooks/useAutoScroll';
 
 const ChatPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -22,6 +23,7 @@ const ChatPage = () => {
     sendMessage, 
     status 
   } = useChat({
+    messages: uiMessages,
     transport: new DefaultChatTransport({
       api: '/api/v1/chat',
       headers: { 'Content-Type': 'application/json' },
@@ -37,6 +39,8 @@ const ChatPage = () => {
   const handleSendMessage = (content: string) => {
     sendMessage({ text: content }, { body : { threadId: id } });
   };
+
+  const { messagesEndRef } = useAutoScroll(messages);
 
   const hasMessages = messages.length > 0;
   const isStreaming = status === 'streaming';
@@ -76,10 +80,10 @@ const ChatPage = () => {
                 </div>
               </div>
             )}
+            <div ref={messagesEndRef} />
           </div>
         )}
       </div>
-
       {hasMessages ? (
         <div className="absolute bottom-0 left-0 right-0 bg-transparent px-4 py-4 sm:px-6 md:px-8 lg:px-12">
           <div className="max-w-4xl mx-auto">
