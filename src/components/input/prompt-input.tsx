@@ -6,11 +6,11 @@ import { Plus, Lightbulb, CornerRightUp, Mic, Settings, LightbulbIcon, ChevronDo
 
 export default function PromptInput({ onSendMessage }: { onSendMessage: (message: string) => void }) {
     return (
-        <div className="w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 bg-transparent">
             <div className="relative w-full">
                 {/* Mobile: Additional toolbar above input */}
                 <div className="sm:hidden mb-2">
-                    <div className="flex items-center justify-between gap-2 px-3 py-2 bg-muted/30 rounded-xl">
+                    <div className="flex items-center justify-between gap-2 px-3 py-2 rounded-xl">
                         <div className="flex items-center gap-2">
                             <span className="text-xs text-muted-foreground">Model:</span>
                             <Select>

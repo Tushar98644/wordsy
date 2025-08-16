@@ -14,7 +14,7 @@ const AppLayout = async ({ children }: { children: React.ReactNode }) => {
     return (
         <SidebarProvider defaultOpen={defaultOpen}>
             <AppSidebar session={session || undefined} />
-            <div className="flex flex-col min-h-screen w-full">
+            <div className="flex flex-col h-screen w-full">
                 { session && <Header /> }
                 <main className="flex-1 flex flex-col overflow-hidden">
                     <div className="z-10 h-full bg-transparent">{children}</div>
