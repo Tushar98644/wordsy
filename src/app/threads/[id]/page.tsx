@@ -25,7 +25,6 @@ const ChatPage = () => {
     transport: new DefaultChatTransport({
       api: '/api/v1/chat',
       headers: { 'Content-Type': 'application/json' },
-      body: { threadId: id },
     }),
   });
 
@@ -36,7 +35,7 @@ const ChatPage = () => {
   }, [thread?.messages, uiMessages, setMessages]);
 
   const handleSendMessage = (content: string) => {
-    sendMessage({ text: content });
+    sendMessage({ text: content }, { body : { threadId: id } });
   };
 
   const hasMessages = messages.length > 0;
@@ -46,7 +45,7 @@ const ChatPage = () => {
     <section id='chat-window' className="h-full w-full flex flex-col relative">
       <div id='chat-area' className="flex-1 overflow-y-auto px-4 py-6 sm:px-6 sm:py-8 md:px-8 md:py-10 lg:px-12 lg:py-12">
         {hasMessages && (
-          <div className="max-w-4xl mx-auto space-y-4 pb-24">
+          <div className="max-w-4xl mx-auto space-y-4 pb-28">
             {messages.map((message) => (
               <div key={message.id} className={`flex w-full ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                 <div className="max-w-[80%] sm:max-w-[70%] md:max-w-[60%] flex flex-col">
@@ -71,7 +70,7 @@ const ChatPage = () => {
               <div className="flex justify-start">
                 <div className="max-w-[80%] flex flex-col">
                   <span className="text-xs mx-3 text-muted-foreground mb-1">assistant</span>
-                  <div className="p-3 rounded-lg bg-muted">
+                  <div className="p-3 rounded-lg">
                     <span className="text-sm">Thinking...</span>
                   </div>
                 </div>
