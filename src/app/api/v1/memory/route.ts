@@ -1,5 +1,5 @@
+import { memoryService } from "@/services/memoryService";
 import { NextRequest, NextResponse } from "next/server";
-import { getContext, getUserMemories, storeMemory } from "@/lib/memory/service";
 
 export async function POST(request: NextRequest) {
     try {
@@ -11,13 +11,13 @@ export async function POST(request: NextRequest) {
 
         switch (action) {
             case 'getContext': 
-              return await getContext(userId, params);
+              return await memoryService.getContext(userId, params);
 
             case 'store': 
-              return await storeMemory(userId, params);
+              return await memoryService.storeMemory(userId, params);
 
             case 'getUserMemories': 
-              return await getUserMemories(userId);
+              return await memoryService.getUserMemories(userId);
 
             default:
                 return NextResponse.json({ error: "Invalid action" }, { status: 400 });

@@ -1,248 +1,167 @@
+import { auth } from "@/config/auth/server";
 import { gemini } from "@/config/gemini";
-import { convertToCoreMessages, streamText } from "ai";
-import { Thread } from "@/db/models/thread";
-import { connectToDB } from "@/db/connect";
-import { nanoid } from "nanoid";
+import {
+  convertToModelMessages,
+  streamText,
+  createUIMessageStreamResponse,
+  type UIMessage,
+} from "ai";
 import axios from "axios";
+import { headers } from "next/headers";
+
+// const saveMessages = async (
+//   threadId: string,
+//   userMessage: { role: "user"; content: string; files?: any[] },
+//   assistantMessage: { role: "assistant"; content: string }
+// ) => {
+//   try {
+//     await axios.post(
+//       `${process.env.BETTER_AUTH_URL}/api/v1/${threadId}/messages`,
+//       {
+//         threadId,
+//         message: userMessage,
+//       }
+//     );
+
+//     await axios.post(
+//       `${process.env.BETTER_AUTH_URL}/api/v1/${threadId}/messages`,
+//       {
+//         threadId,
+//         message: assistantMessage,
+//       }
+//     );
+//   } catch (error) {
+//     console.error("[MESSAGES] Save error:", error);
+//   }
+// };
+
+// const extractTextFromUIMessage = (msg: UIMessage | undefined) => {
+//   if (!msg) return "";
+//   return (msg.parts ?? [])
+//     .map((p: any) => {
+//       if (typeof p === "string") return p;
+//       if (typeof p.content === "string") return p.content;
+//       if (typeof p.text === "string") return p.text;
+//       if (typeof p.textDelta === "string") return p.textDelta;
+//       return "";
+//     })
+//     .join("");
+// };
+
+// export async function POST(req: Request) {
+//   const session = await auth.api.getSession({
+//     headers: await headers(),
+//   });
+
+//   if (!session) {
+//     return Response.json({ error: "Unauthorized" }, { status: 401 });
+//   }
+
+//   const userEmail = session?.user?.email;
+//   if (!userEmail) {
+//     return Response.json({ error: "User email not found" }, { status: 400 });
+//   }
+
+//   try {
+//     const { message, fileUrl, fileMetadata, threadId } = await req.json();
+//     console.log("[CHAT] Received message:", message);
+
+//     if (!message || !message.role || !message.content) {
+//       return Response.json({ error: "Message not found" }, { status: 400 });
+//     }
+
+//     const userQuery =
+//       typeof message?.content === "string"
+//         ? message.content
+//         : message?.content?.find(
+//             (c: { type: string; text?: string }) => c.type === "text"
+//           )?.text ?? "";
+
+//     const aiMessages = [message];
+
+//     const result = streamText({
+//       model: gemini("gemini-2.5-flash"),
+//       messages: convertToModelMessages(aiMessages),
+//     });
+
+//     const uiStream = result.toUIMessageStream?.({
+//       originalMessages: aiMessages as any,
+//       onFinish: async ({
+//         responseMessage,
+//       }: {
+//         responseMessage?: UIMessage;
+//       }) => {
+//         try {
+//           if (!threadId) return;
+
+//           const userMessageForDB = {
+//             role: "user" as const,
+//             content: userQuery,
+//             ...(fileUrl &&
+//               fileMetadata && {
+//                 files: [
+//                   {
+//                     fileId: fileMetadata.fileId,
+//                     fileName: fileMetadata.fileName,
+//                     fileUrl,
+//                     mimeType: fileMetadata.mimeType,
+//                     size: fileMetadata.size,
+//                     uploadedAt: new Date(),
+//                   },
+//                 ],
+//               }),
+//           };
+
+//           const assistantText = extractTextFromUIMessage(responseMessage);
+
+//           const assistantMessageForDB = {
+//             role: "assistant" as const,
+//             content: assistantText,
+//           };
+
+//           await saveMessages(threadId, userMessageForDB, assistantMessageForDB);
+//         } catch (err) {
+//           console.error("[ONFINISH] Persist error:", err);
+//         }
+//       },
+//     });
+
+//     const uiResponse = createUIMessageStreamResponse({
+//       stream: uiStream,
+//       status: 200,
+//       headers: {
+//         "Content-Type": "text/plain",
+//       },
+//     });
+
+//     return uiResponse;
+//   } catch (error) {
+//     console.error("[CHAT] Error:", error);
+//     return new Response(JSON.stringify({ error: (error as Error).message }), {
+//       status: 500,
+//       headers: {
+//         "Content-Type": "application/json",
+//       },
+//     });
+//   }
+// }
+
+export const maxDuration = 30;
 
 export async function POST(req: Request) {
-  try {
-    await connectToDB();
+  const { messages } = await req.json();
 
-    const { messages, fileUrl, fileMetadata, chatId, userId } = await req.json();
-    console.log("[CHAT] Request Body:", {
-      userId,
-      chatId,
-      fileUrl,
-      fileMetadata,
-    });
+  const result = streamText({
+    model: gemini("gemini-2.5-flash"),
+    messages: convertToModelMessages(messages),
+  })
 
-    const lastUserMessage = messages[messages.length - 1];
-    console.log("[CHAT] Last user message:", lastUserMessage);
-
-    let memoryContext = "";
-    let memoriesFound = 0;
-
-    if (userId && lastUserMessage?.content) {
-      try {
-        const query = typeof lastUserMessage.content === "string"
-            ? lastUserMessage.content
-            : lastUserMessage.content.find(
-                (c: { type: string }) => c.type === "text"
-              )?.text || "";
-
-        const memoryResponse = await axios.post<{
-          context: string;
-          memoriesFound: number;
-        }>(
-          `${
-            process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"
-          }/api/v1/memory`,
-          { action: "getContext", userId, query },
-          { headers: { "Content-Type": "application/json" } }
-        );
-
-        if (memoryResponse.status === 200) {
-          memoryContext = memoryResponse.data.context;
-          memoriesFound = memoryResponse.data.memoriesFound;
-        } else {
-          console.warn("[MEMORY] API failed:", memoryResponse.status);
-        }
-      } catch (err) {
-        console.error("[MEMORY] Error getting memory:", err);
-      }
-    }
-
-    const enhanced = [...messages];
-    let fileAttachment = null;
-    let enhancedUserMessage = null;
-
-    if (fileUrl && fileMetadata && messages.length > 0) {
-      fileAttachment = {
-        fileId: fileMetadata.fileId || nanoid(),
-        fileName: fileMetadata.fileName,
-        fileUrl: fileUrl,
-        mimeType: fileMetadata.mimeType,
-        size: fileMetadata.size,
-        uploadedAt: new Date(),
-      };
-      console.log("[FILE] File attachment created:", fileAttachment);
-
-      const last = messages[messages.length - 1];
-      if (last.role === "user") {
-        const isImage = /\.(jpg|jpeg|png|gif|webp|bmp)$/i.test(fileUrl);
-
-        enhancedUserMessage = {
-          role: "user",
-          content: [
-            { type: "text", text: last.content || "" },
-            isImage
-              ? { type: "image", image: fileUrl }
-              : {
-                  type: "file",
-                  data: fileUrl,
-                  mimeType: fileMetadata.mimeType || "application/pdf",
-                },
-          ],
-          files: [fileAttachment],
-        };
-
-        enhanced[enhanced.length - 1] = enhancedUserMessage;
-        console.log(
-          "[FILE] Enhanced user message with file:",
-          enhancedUserMessage
-        );
-      }
-    }
-
-    const maxContextLength = 100000;
-    let count = 0;
-    const filtered: typeof enhanced = [];
-    for (let i = enhanced.length - 1; i >= 0; i--) {
-      const msg = enhanced[i];
-      const length =
-        typeof msg.content === "string"
-          ? msg.content.length
-          : JSON.stringify(msg.content).length;
-      const tokens = length / 4;
-      if (count + tokens > maxContextLength) break;
-      count += tokens;
-      filtered.unshift(msg);
-    }
-
-    if (memoryContext) {
-      filtered.unshift({
-        role: "system",
-        content: `You are a helpful AI assistant. Here's relevant context from previous conversations with this user: ${memoryContext}      
-        Use this context naturally to provide more personalized responses. Don't explicitly mention "I remember" unless relevant.`,
-      });
-    }
-
-    const core = convertToCoreMessages(filtered);
-
-    const result = streamText({
-      model: gemini("gemini-2.5-flash"),
-      messages: core,
-      maxTokens: 4000,
-    });
-
-    const resultStream = result.toDataStream();
-
-    const chunks = [];
-    for await (const chunk of result.textStream) {
-      chunks.push(chunk);
-    }
-    const responseText = chunks.join("");
-
-    if (chatId && userId) {
-      const originalUserMessage = messages[messages.length - 1];
-
-      const userMessage = {
-        role: "user",
-        content: originalUserMessage.content,
-        ...(fileAttachment && { files: [fileAttachment] }),
-      };
-
-      console.log("[USER MESSAGE] User message for DB:", userMessage);
-
-      const assistantMessage = {
-        role: "assistant",
-        content: responseText,
-      };
-
-      console.log("[DB] Saving messages to thread:", chatId);
-
-      try {
-        const updatedChat = await Thread.findByIdAndUpdate(
-          chatId,
-          {
-            $push: { messages: { $each: [userMessage, assistantMessage] } },
-          },
-          { new: true }
-        );
-        console.log("[DB] Thread updated successfully ✅");
-        console.log(
-          "[DB] Last user message saved:",
-          updatedChat.messages[updatedChat.messages.length - 2]
-        );
-      } catch (dbError) {
-        console.error("[DB] Error updating thread:", dbError);
-      }
-    }
-
-    if (userId) {
-      const userContent = typeof lastUserMessage.content === "string"
-          ? lastUserMessage.content
-          : lastUserMessage.content.find(
-              (c: { type: string }) => c.type === "text"
-            )?.text || "";
-
-      if (userContent) {
-        try {
-          await axios.post(
-            `${
-              process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"
-            }/api/v1/memory`,
-            {
-              action: "store",
-              userId,
-              content: userContent,
-              metadata: {
-                role: "user",
-                type: "conversation",
-                ...(fileAttachment && {
-                  hasFile: true,
-                  fileName: fileAttachment.fileName,
-                }),
-              },
-            },
-            {
-              headers: { "Content-Type": "application/json" },
-            }
-          );
-        } catch (err) {
-          console.error("[MEMORY] Error storing user message:", err);
-        }
-      }
-
-      if (responseText && responseText.length > 30) {
-        try {
-          const assistantMemoryRes = await axios.post(
-            `${
-              process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"
-            }/api/v1/memory`,
-            {
-              action: "store",
-              userId,
-              content: responseText,
-              metadata: { role: "assistant", type: "conversation" },
-            },
-            {
-              headers: { "Content-Type": "application/json" },
-            }
-          );
-          console.log(
-            "[MEMORY] Stored assistant message:",
-            assistantMemoryRes.status
-          );
-        } catch (err) {
-          console.error("[MEMORY] Error storing assistant message:", err);
-        }
-      }
-    }
-
-    return new Response(resultStream, {
-      status: 200,
-      headers: {
-        "Content-Type": "text/plain",
-        "X-Memory-Context": memoriesFound > 0 ? "true" : "false",
-        "X-Memories-Found": memoriesFound.toString(),
-      },
-    });
-  } catch (e) {
-    console.error("[ERROR] Thread API failed:", e);
-    return new Response(JSON.stringify({ error: (e as Error).message }), {
-      status: 500,
-    });
-  }
+  const uiResponse = createUIMessageStreamResponse({
+    stream: result.toUIMessageStream(),
+    status: 200,
+    headers: {
+      "Content-Type": "text/plain",
+    },
+  }) 
+  return result.toUIMessageStreamResponse();
 }
