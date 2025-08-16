@@ -5,7 +5,7 @@ import { useFetchThread } from '@/hooks/queries/useThreadQuery';
 import PromptInput from '@/components/input/prompt-input';
 import { useChat } from '@ai-sdk/react';
 import { DefaultChatTransport } from 'ai';
-import { toUIMessages } from '@/lib/convertMessage';
+import { toUIMessages } from '@/utils/convertMessage';
 import { useMemo, useEffect } from 'react';
 
 const ChatPage = () => {

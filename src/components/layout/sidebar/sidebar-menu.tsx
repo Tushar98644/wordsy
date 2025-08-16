@@ -12,10 +12,11 @@ import { SidebarGroupContent } from "@/components/ui/sidebar";
 import { SidebarGroup } from "@/components/ui/sidebar";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { WriteIcon } from "@/components/icons/write-icon";
+import { WriteIcon } from "@/components/ui/write-icon";
 import {
   FolderOpenIcon,
   FolderSearchIcon,
+  NotebookPen,
   PlusIcon,
 } from "lucide-react";
 import { useCallback, useState } from "react";
