@@ -20,9 +20,10 @@ import { createPortal } from "react-dom";
 
 interface FileUploadButtonProps {
   onFilesUploaded?: (files: FileMetadata[]) => void;
+  clearSignal?: number
 }
 
-export function FileUploadButton({ onFilesUploaded }: FileUploadButtonProps) {
+export function FileUploadButton({ onFilesUploaded, clearSignal }: FileUploadButtonProps) {
   const [files, setFiles] = React.useState<File[]>([]);
   const [uploadedMetadata, setUploadedMetadata] = React.useState<FileMetadata[]>([]);
   const [fileProgressMap, setFileProgressMap] = React.useState<Record<string, number>>({});
@@ -33,7 +34,14 @@ export function FileUploadButton({ onFilesUploaded }: FileUploadButtonProps) {
     const container = document.getElementById('file-upload-portal');
     setPortalContainer(container);
   }, []);
-
+  
+    React.useEffect(() => {
+    if (clearSignal !== undefined) {
+      setFiles([]);
+      setUploadedMetadata([]);
+      setFileProgressMap({});
+    }
+  }, [clearSignal]);
 
   const updateFileProgress = React.useCallback((file: File, progress: number) => {
     const fileKey = `${file.name}-${file.size}`;

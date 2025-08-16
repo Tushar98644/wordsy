@@ -25,10 +25,25 @@ export function toUIMessage(
     if (!isNaN(dt)) metadata.updatedAt = dt;
   }
 
+  const parts: any[] = [
+    { type: "text", text: m.content }
+  ];
+
+  if (m.files && Array.isArray(m.files) && m.files.length > 0) {
+    const fileParts = m.files.map(file => ({
+      type: "file",
+      url: file.fileUrl,
+      filename: file.fileName,
+      mediaType: file.mimeType,
+    }));
+    
+    parts.push(...fileParts);
+  }
+
   return {
     id: m._id,
     role: m.role,
-    parts: [{ type: "text", text: m.content }],
+    parts,
     metadata: Object.keys(metadata).length ? metadata : undefined,
   };
 }

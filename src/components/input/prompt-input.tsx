@@ -1,29 +1,33 @@
+
 'use client'
 
-import { Button } from "@/components/ui/button"
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger, DropdownMenuItem } from "@/components/ui/dropdown-menu"
-import { Lightbulb, CornerRightUp, Mic, Settings, LightbulbIcon } from "lucide-react"
 import * as React from "react";
-import {FileUploadButton} from "./file-upload-button";
-import FileCounter from "./file-counter";
+import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger, DropdownMenuItem } from "@/components/ui/dropdown-menu";
+import { Lightbulb, CornerRightUp, Mic, Settings, LightbulbIcon } from "lucide-react";
+import { FileUploadButton } from "./file-upload-button";
+import { FileMetadata } from "@/types/file";
 
 interface PromptInputProps {
-  onSendMessage: (message: string, files?: File[]) => void;
+  onSendMessage: (message: string, files?: FileMetadata[]) => void;
   disabled?: boolean;
 }
 
 export default function PromptInput({ onSendMessage, disabled }: PromptInputProps) {
-  const [files, setFiles] = React.useState<File[]>([]);
+  const [files, setFiles] = React.useState<FileMetadata[]>([]);
   const [inputValue, setInputValue] = React.useState("");
+  const [clearUploadsSignal, setClearUploadsSignal] = React.useState(0);
 
   const handleSendMessage = () => {
     if (!inputValue.trim() && files.length === 0) return;
-    
-    onSendMessage(inputValue.trim(), files);
+
+    onSendMessage(inputValue, files);
+
     setInputValue("");
     setFiles([]);
+    setClearUploadsSignal((s) => s + 1);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -39,7 +43,6 @@ export default function PromptInput({ onSendMessage, disabled }: PromptInputProp
           <div id="file-upload-portal"></div>
           <div className="shadow-lg overflow-hidden rounded-2xl sm:rounded-3xl backdrop-blur-sm bg-muted/60 relative flex w-full flex-col">
             <div className="flex flex-col gap-3 px-4 lg:px-5 pt-3 pb-3">
-              {/* Input field */}
               <div className="relative w-full">
                 <input
                   placeholder="Ask anything..."
@@ -53,10 +56,15 @@ export default function PromptInput({ onSendMessage, disabled }: PromptInputProp
 
               <div className="flex w-full items-center justify-between">
                 <div className="flex items-center gap-1 sm:gap-2 relative">
-                  <FileUploadButton 
+                  <FileUploadButton
+                    onFilesUploaded={(uploaded) => {
+                      setFiles(uploaded);
+                    }}
+                    clearSignal={clearUploadsSignal}
                   />
 
-                  <Tooltip>
+                  
+                                    <Tooltip>
                     <TooltipTrigger asChild>
                       <Button variant="ghost" size="sm" className="rounded-full p-2 h-8 w-8">
                         <Lightbulb className="size-4" />
@@ -91,8 +99,6 @@ export default function PromptInput({ onSendMessage, disabled }: PromptInputProp
                 </div>
 
                 <div className="flex items-center gap-1 sm:gap-2">
-                  <FileCounter count={files.length} />
-
                   <Select>
                     <SelectTrigger className="w-auto min-w-[60px] sm:min-w-[80px] border-none bg-transparent rounded-full hover:bg-input text-sm h-8">
                       <SelectValue placeholder="GPT-4" />
@@ -114,7 +120,7 @@ export default function PromptInput({ onSendMessage, disabled }: PromptInputProp
 
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <Button 
+                      <Button
                         onClick={handleSendMessage}
                         disabled={disabled || (!inputValue.trim() && files.length === 0)}
                         className="cursor-pointer text-muted-foreground rounded-full p-2 bg-secondary hover:bg-accent-foreground hover:text-accent transition-all duration-200 h-8 w-8 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
@@ -129,7 +135,7 @@ export default function PromptInput({ onSendMessage, disabled }: PromptInputProp
             </div>
           </div>
         </div>
-      </div>
+      </div> 
     </div>
   );
 }

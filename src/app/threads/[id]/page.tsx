@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 'use client'
 
 import { useParams } from 'next/navigation';
@@ -8,20 +9,21 @@ import { DefaultChatTransport } from 'ai';
 import { toUIMessages } from '@/utils/convertMessage';
 import { useMemo, useEffect } from 'react';
 import { useAutoScroll } from '@/hooks/useAutoScroll';
+import type { FileMetadata } from '@/types/file';
 
 const ChatPage = () => {
   const { id } = useParams<{ id: string }>();
-  const {  data: thread } = useFetchThread(id);
-  
+  const { data: thread } = useFetchThread(id);
+
   const uiMessages = useMemo(() => {
     return toUIMessages(thread?.messages || []);
   }, [thread?.messages]);
 
-  const { 
-    messages, 
-    setMessages, 
-    sendMessage, 
-    status 
+  const {
+    messages,
+    setMessages,
+    sendMessage,
+    status,
   } = useChat({
     messages: uiMessages,
     transport: new DefaultChatTransport({
@@ -30,14 +32,22 @@ const ChatPage = () => {
     }),
   });
 
+
   useEffect(() => {
     if (thread?.messages && thread.messages.length > 0) {
       setMessages(uiMessages);
     }
   }, [thread?.messages, uiMessages, setMessages]);
 
-  const handleSendMessage = (content: string) => {
-    sendMessage({ text: content }, { body : { threadId: id } });
+  const handleSendMessage = (content: string, files?: FileMetadata[]) => {
+    if (!id) {
+      console.error("No thread id available");
+      return;
+    }
+
+    sendMessage({ text: content }, {
+      body: { files: files ?? [], threadId: id },
+    });
   };
 
   const { messagesEndRef } = useAutoScroll(messages);
@@ -57,14 +67,33 @@ const ChatPage = () => {
                     {message.role}
                   </span>
                   <div className={`p-3 rounded-lg ${message.role === 'user' ? 'text-white ml-auto' : ''}`}>
-                    <span className="text-sm whitespace-pre-wrap">
-                      {message.parts.map((part, index) => 
-                        part.type === 'text' ? part.text : null
-                      ).join('')}
+                    <div className="text-sm whitespace-pre-wrap flex justify-end">
+                      {message.parts.map((part, idx) => (
+                        part.type === 'text' ? (
+                          <span key={idx}>{part.text}</span>
+                        ) : null
+                      ))}
                       {isStreaming && message === messages[messages.length - 1] && (
                         <span className="animate-pulse">|</span>
                       )}
-                    </span>
+                    </div>
+
+                    {message.parts.some(p => p.type === 'file') && (
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        {message.parts.map((part, idx) => {
+                          if (part.type !== 'file') return null;
+                          return (
+                            <div key={idx} className="border rounded-lg overflow-hidden">
+                              <img
+                                src={part.url}
+                                alt={`file-${idx}`}
+                                className="max-w-xs max-h-60 object-contain"
+                                onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -84,25 +113,15 @@ const ChatPage = () => {
           </div>
         )}
       </div>
-      {hasMessages ? (
-        <div className="absolute bottom-0 left-0 right-0 bg-transparent px-4 py-4 sm:px-6 md:px-8 lg:px-12">
-          <div className="max-w-4xl mx-auto">
-            <PromptInput 
-              onSendMessage={handleSendMessage} 
-              disabled={status !== 'ready'} 
-            />
-          </div>
+
+      <div className="absolute bottom-0 left-0 right-0 bg-transparent px-4 py-4 sm:px-6 md:px-8 lg:px-12">
+        <div className="max-w-4xl mx-auto">
+          <PromptInput
+            onSendMessage={(content: string, files?: FileMetadata[]) => handleSendMessage(content, files)}
+            disabled={status !== 'ready'}
+          />
         </div>
-      ) : (
-        <div className="h-full flex items-center justify-center">
-          <div className="w-full max-w-4xl">
-            <PromptInput 
-              onSendMessage={handleSendMessage} 
-              disabled={status !== 'ready'} 
-            />
-          </div>
-        </div>
-      )}
+      </div>
     </section>
   );
 };
