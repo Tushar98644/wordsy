@@ -10,10 +10,13 @@ import { toUIMessages } from '@/utils/convertMessage';
 import { useMemo, useEffect } from 'react';
 import { useAutoScroll } from '@/hooks/useAutoScroll';
 import type { FileMetadata } from '@/types/file';
+import { useQueryClient } from '@tanstack/react-query';
 
 const ChatPage = () => {
   const { id } = useParams<{ id: string }>();
   const { data: thread } = useFetchThread(id);
+
+  const queryClient = useQueryClient();
 
   const uiMessages = useMemo(() => {
     return toUIMessages(thread?.messages || []);
@@ -25,13 +28,14 @@ const ChatPage = () => {
     sendMessage,
     status,
   } = useChat({
-    messages: uiMessages,
     transport: new DefaultChatTransport({
       api: '/api/v1/chat',
       headers: { 'Content-Type': 'application/json' },
     }),
+    onFinish: (message) => {
+     queryClient.invalidateQueries({ queryKey: ["thread", id] });
+    }
   });
-
 
   useEffect(() => {
     if (thread?.messages && thread.messages.length > 0) {
