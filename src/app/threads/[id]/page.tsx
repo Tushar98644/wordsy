@@ -2,7 +2,6 @@
 'use client'
 
 import { useParams } from 'next/navigation';
-import { useFetchThread } from '@/hooks/queries/useThreadQuery';
 import PromptInput from '@/components/input/prompt-input';
 import { useChat } from '@ai-sdk/react';
 import { DefaultChatTransport } from 'ai';
