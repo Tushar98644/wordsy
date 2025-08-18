@@ -1,5 +1,6 @@
 import { gemini } from "@/config/gemini";
 import { connectToDB } from "@/db/connect";
+import { Message } from "@/db/models/message";
 import { Thread } from "@/db/models/thread";
 import { FileMetadata } from "@/types/file";
 import { convertToModelMessages, streamText } from "ai";
@@ -11,18 +12,21 @@ const saveMessages = async (
 ) => {
   try {
     await connectToDB();
-
-    const thread = await Thread.findById(threadId);
-    if (!thread) {
-      console.error("Thread not found:", threadId);
-      return;
-    }
-
-    thread.messages.push(userMessage, assistantMessage);
-    thread.markModified("messages");
-    await thread.save();
-
-    console.log("Messages saved directly to database");
+    
+    await Message.create({
+      threadId,
+      role: userMessage.role,
+      content: userMessage.content,
+      files: userMessage.files,
+    });
+    
+    await Message.create({
+      threadId,
+      role: assistantMessage.role,
+      content: assistantMessage.content,
+    });
+    
+    await Thread.findByIdAndUpdate(threadId, { $set: { updatedAt: new Date() } });
   } catch (error) {
     console.error("Direct save error:", error);
   }

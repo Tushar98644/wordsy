@@ -11,16 +11,18 @@ import { useMemo, useEffect } from 'react';
 import { useAutoScroll } from '@/hooks/useAutoScroll';
 import type { FileMetadata } from '@/types/file';
 import { useQueryClient } from '@tanstack/react-query';
+import { useGetMessages } from '@/hooks/queries/useMessageQuery';
 
 const ChatPage = () => {
   const { id } = useParams<{ id: string }>();
-  const { data: thread } = useFetchThread(id);
 
+  const { data: threadMessages } = useGetMessages(id);
+  
   const queryClient = useQueryClient();
 
   const uiMessages = useMemo(() => {
-    return toUIMessages(thread?.messages || []);
-  }, [thread?.messages]);
+    return toUIMessages(threadMessages || []);
+  }, [threadMessages]);
 
   const {
     messages,
@@ -38,10 +40,10 @@ const ChatPage = () => {
   });
 
   useEffect(() => {
-    if (thread?.messages && thread.messages.length > 0) {
+    if (threadMessages && threadMessages.length > 0) {
       setMessages(uiMessages);
     }
-  }, [thread?.messages, uiMessages, setMessages]);
+  }, [threadMessages, uiMessages, setMessages]);
 
   const handleSendMessage = (content: string, files?: FileMetadata[]) => {
     if (!id) {

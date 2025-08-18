@@ -1,8 +1,8 @@
 import axios from "axios";
 
 class MessageService {
-    public async sendMessage(threadId: string, message: any) {
-        const res = await axios.post(`/api/v1/threads/${threadId}/messages`, { message });
+    public async getMessages(threadId: string) {
+        const res = await axios.get('/api/v1/messages', { params: { threadId } });
         return res.data;
     }
 }

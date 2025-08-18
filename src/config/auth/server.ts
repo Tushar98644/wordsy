@@ -3,14 +3,22 @@ import { mongodbAdapter } from "better-auth/adapters/mongodb";
 import clientPromise from "@/db/client";
 import { nextCookies } from "better-auth/next-js";
 
-const dbPromise = clientPromise.then(client => client.db());
+const dbPromise = clientPromise.then((client) => client.db());
 
 export const auth = betterAuth({
+  session: {
+    expiresIn: 60 * 60 * 24 * 1,
+    updateAge: 60 * 60 * 24,
+    cookieCache: {
+			enabled: true, 
+			maxAge: 300
+		}
+  },
   database: mongodbAdapter(await dbPromise),
   secret: process.env.BETTER_AUTH_SECRET as string,
   baseURL: process.env.BETTER_AUTH_URL as string,
   emailAndPassword: {
-    enabled: true
+    enabled: true,
   },
   socialProviders: {
     google: {
@@ -24,5 +32,5 @@ export const auth = betterAuth({
       clientSecret: process.env.GITHUB_CLIENT_SECRET as string,
     },
   },
-  plugins: [nextCookies()]
+  plugins: [nextCookies()],
 });

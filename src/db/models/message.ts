@@ -8,6 +8,7 @@ const FileSchema = new Schema({
 }, { timestamps: true });
 
 export const MessageSchema = new Schema({
+  threadId: { type: Schema.Types.ObjectId, ref: 'Thread', index: true },
   role: String,
   content: mongoose.Schema.Types.Mixed,
   files: [FileSchema],

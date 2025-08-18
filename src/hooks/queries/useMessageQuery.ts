@@ -1,19 +1,9 @@
 import { messageService } from "@/services/messageService";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-export const useSendMessage = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: ({ threadId, message }: { threadId: string; message: any }) =>
-      messageService.sendMessage(threadId, message),
-
-    onSuccess: (_data, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["thread", variables.threadId] });
-    },
-
-    onError: (err) => {
-      console.error("send failed", err);
-    },
+export const useGetMessages = (threadId: string) => {
+  return useQuery({
+    queryKey: ["messages", threadId],
+    queryFn: () => messageService.getMessages(threadId),
   });
 };

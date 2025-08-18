@@ -64,9 +64,9 @@ const MainContent = () => {
 
                         <div className="space-y-4">
                             <TypewriterEffectSmooth words={words} />
-                            <p className="text-muted-foreground text-base sm:text-lg max-w-2xl mx-auto leading-relaxed">
+                            <div className="text-muted-foreground text-base sm:text-lg max-w-2xl mx-auto leading-relaxed">
                                 <TextGenerateEffect words={desc} />
-                            </p>
+                            </div>
                         </div>
                     </div>
 
